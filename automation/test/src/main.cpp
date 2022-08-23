@@ -1,8 +1,9 @@
 #include <Arduino.h>
 #include <WIFI.h>
 
-#define PINLED 23
-#define BREAKTIME 100
+#define PINA 26
+#define PINB 27
+#define BREAKTIME 2
 
 void setup()
 {
@@ -11,14 +12,21 @@ void setup()
 	Serial.println("Hello World!");
 
 	// setup pin
-	pinMode(PINLED, OUTPUT);
-}
+	pinMode(PINA, OUTPUT);
+	pinMode(PINB, OUTPUT);
+
+	// blink io pin
+	digitalWrite(PINA, HIGH);
+	delay(BREAKTIME);
+	digitalWrite(PINA, LOW);
+	delay(BREAKTIME);
+}	
 
 void loop()
 {
-	// blink io pin
-	digitalWrite(PINLED, HIGH);
-	delayMicroseconds(BREAKTIME);
-	digitalWrite(PINLED, LOW);
-	delayMicroseconds(BREAKTIME);
+	// // blink io pin
+	// digitalWrite(PINA, HIGH);
+	// delay(BREAKTIME);
+	// digitalWrite(PINA, LOW);
+	// delay(BREAKTIME);
 }
