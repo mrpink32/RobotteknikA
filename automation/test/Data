@@ -10,3 +10,12 @@ Steps/Pulser: 1600 pulser
 
 Længde pr. rotation:
 55 mm
+
+Ekstra eller noget:
+1600 svingninger i 8 steps
+
+
+1 step: 10 ms
+high: 10 ms
+low: 120 ms
+
