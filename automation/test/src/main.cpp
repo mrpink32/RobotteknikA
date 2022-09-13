@@ -1,12 +1,17 @@
 #include <Arduino.h>
-#include <WIFI.h>
 
 const int32_t PIN_STEP = 26;
 const int32_t PIN_DIR = 27;
 #define BREAK_TIME 1
 
 int32_t steps = 0;
-bool direction = true;
+// bool direction = true;
+enum Direction
+{
+	forward,
+	backward,
+};
+bool direction = forward;
 
 hw_timer_t *timer = NULL;
 hw_timer_t *timer2 = NULL;
@@ -32,18 +37,34 @@ void IRAM_ATTR onTimer()
 
 void toggleDirection(bool *direction)
 {
-	if (*direction)
+	switch (*direction)
 	{
-		*direction = false;
+	case forward:
+		*direction = backward;
 		digitalWrite(PIN_DIR, HIGH);
 		delay(BREAK_TIME);
-	}
-	else
-	{
-		*direction = true;
+		break;
+	case backward:
+		*direction = forward;
 		digitalWrite(PIN_DIR, LOW);
 		delay(BREAK_TIME);
+		break;
+	default:
+		Serial.println("wtf!");
+		break;
 	}
+	// if (*direction)
+	// {
+	// 	*direction = false;
+	// 	digitalWrite(PIN_DIR, HIGH);
+	// 	delay(BREAK_TIME);
+	// }
+	// else
+	// {
+	// 	*direction = true;
+	// 	digitalWrite(PIN_DIR, LOW);
+	// 	delay(BREAK_TIME);
+	// }
 }
 
 void setup()
