@@ -2,15 +2,15 @@
 #include <math.h>
 #include <vector>
 
-const int64_t TIME = 3000000;
-const double_t TIMEC = pow(TIME, 3);
+const int32_t TIME = 1500;
+const double_t TIMESQ = pow(TIME, 2);
 const int32_t MAX_DISTANCE = 10000;
 const int32_t PIN_STEP = 26;
 const int32_t PIN_DIR = 27;
 #define BREAK_TIME 1
-double_t jumps = 0;
+int32_t jumps = 0;
 
-std::vector<int32_t> delays;
+std::vector<int16_t> delays;
 
 int32_t steps = 0;
 enum Direction
@@ -23,24 +23,20 @@ bool direction = forward;
 double_t moveTest(double_t x)
 {
 	double_t result = 0;
-	if (x < TIME / 4)
+	if (x < TIME / 2)
 	{
-		result = 32 * pow(x, 3);
+		result = 2 * pow(x, 2);
 	}
-	else if (TIME / 4 <= x < 3 * TIME / 4)
+	else if (x < TIME)
 	{
-		result = TIMEC - 12 * x * pow(TIME, 2) + 48 * pow(x, 2) * TIME - 32 * pow(x, 3);
-	}
-	else if (3 * TIME / 4 <= x < TIME)
-	{
-		result = -26 * TIMEC + 96 * x * pow(TIME, 2) - 96 * pow(x, 2) * TIME + 32 * pow(x, 3);
+		result = -2 * pow(x, 2) + 4 * TIME * x - pow(TIME, 2);
 	}
 	else
 	{
-		result = 0;
+		result = TIMESQ;
 	}
-	result /= 3 * TIMEC;
-	result *= 5000;
+	result /= TIMESQ;
+	result *= 10000;
 	return result;
 }
 
@@ -99,13 +95,14 @@ void setup()
 
 	std::vector<int32_t> steptimes;
 
-	for (double_t current_time = 0; current_time < TIME; current_time++)
+	for (double_t current_time = 0; current_time <= TIME; current_time += 0.001)
 	{
 		if (moveTest(current_time) >= jumps + 1)
 		{
 			jumps++;
-			steptimes.push_back(current_time);
-			current_time += 119;
+			steptimes.push_back(int32_t(current_time * 1000 + 0.1));
+			current_time += 0.070;
+			//Serial.printf("%d: %f | %f\n", jumps, current_time, moveTest(current_time + 100));
 		}
 	}
 
@@ -126,17 +123,14 @@ void setup()
 	timer2 = timerBegin(1, 80, true); // 2 = 25ns, 80 = 1us
 	timerAttachInterrupt(timer2, &onTimer2, true);
 	timerAlarmWrite(timer2, 8, false);
-
-	Serial.printf("%d %d", steptimes[9713], steptimes[9714]);
 }
 
 void loop()
 {
 	//Serial.printf("Steps: %d, Direction: %d\n", steps, direction);
-	if (steps >= MAX_DISTANCE) // 10000 (10800)
+	if (steps >= MAX_DISTANCE-2) // 10000 (10800)
 	{
-		delay(10000);
 		toggleDirection(&direction);
-		// steps = 0;
+		steps = 0;
 	}
 }

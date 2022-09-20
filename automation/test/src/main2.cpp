@@ -2,7 +2,7 @@
 #include <math.h>
 #include <vector>
 
-const int32_t TIME = 4000;
+const int32_t TIME = 1500;
 const double_t TIMEC = pow(TIME, 3);
 const int32_t MAX_DISTANCE = 10000;
 const int32_t PIN_STEP = 26;
@@ -105,15 +105,15 @@ void setup()
 		{
 			jumps++;
 			steptimes.push_back(int32_t(current_time * 1000 + 0.1));
-			current_time += 0.160;
-			//Serial.printf("%d: %f | %f\n", jumps, current_time, moveTest(current_time + 100));
+			current_time += 0.070;
+			Serial.printf("%d: %f | %f\n", jumps, current_time, moveTest(current_time + 100));
 		}
 	}
 
-	for (size_t i = 0; i <= MAX_DISTANCE - 2; i++)
+	for (size_t i = 0; i <= MAX_DISTANCE - 3; i++)
 	{
 		delays.push_back(steptimes[i + 1] - steptimes[i]);
-		//Serial.printf("%d: %d\n", i, delays[i]);
+		Serial.printf("%d: %d\n", i, delays[i]);
 	}
 
 	// steps = 0;
@@ -132,7 +132,7 @@ void setup()
 void loop()
 {
 	//Serial.printf("Steps: %d, Direction: %d\n", steps, direction);
-	if (steps >= MAX_DISTANCE-2) // 10000 (10800)
+	if (steps >= MAX_DISTANCE - 3) // 10000 (10800)
 	{
 		toggleDirection(&direction);
 		steps = 0;
