@@ -19,3 +19,9 @@ Ekstra eller noget:
 high: 10 ms
 low: 120 ms
 
+
+
+1000 steps = 35 mm
+375 mm
+378 mm
+

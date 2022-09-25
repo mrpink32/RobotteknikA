@@ -4,9 +4,9 @@
 
 const int32_t TIME = 1500;
 const double_t TIMEC = pow(TIME, 3);
-const int32_t MAX_DISTANCE = 10000;
-const int32_t PIN_STEP = 26;
-const int32_t PIN_DIR = 27;
+const int32_t MAX_STEPS = 10000;
+const int32_t STEP_PIN = 26;
+const int32_t DIR_PIN = 27;
 #define BREAK_TIME 1
 int32_t jumps = 0;
 
@@ -52,18 +52,18 @@ portMUX_TYPE timer2Mux = portMUX_INITIALIZER_UNLOCKED;
 void IRAM_ATTR onTimer2()
 {
 	// portENTER_CRITICAL_ISR(&timer2Mux);
-	digitalWrite(PIN_STEP, LOW);
+	digitalWrite(STEP_PIN, LOW);
 	steps++;
 	timerAlarmWrite(timer, delays[steps] /*120*/, false);
 	timerAlarmEnable(timer);
-	
+
 	// portEXIT_CRITICAL_ISR(&timer2Mux);
 }
 
 void IRAM_ATTR onTimer()
 {
 	portENTER_CRITICAL_ISR(&timerMux);
-	digitalWrite(PIN_STEP, HIGH);
+	digitalWrite(STEP_PIN, HIGH);
 	timerWrite(timer2, 0);
 	timerAlarmEnable(timer2);
 	timerWrite(timer, 0);
@@ -76,13 +76,13 @@ void toggleDirection(bool *direction)
 	if (!*direction)
 	{
 		*direction = backward;
-		digitalWrite(PIN_DIR, HIGH);
+		digitalWrite(DIR_PIN, HIGH);
 		delay(BREAK_TIME);
 	}
 	else
 	{
 		*direction = forward;
-		digitalWrite(PIN_DIR, LOW);
+		digitalWrite(DIR_PIN, LOW);
 		delay(BREAK_TIME);
 	}
 }
@@ -94,36 +94,36 @@ void setup()
 	Serial.println("Hello World!");
 
 	// setup pin
-	pinMode(PIN_STEP, OUTPUT);
-	pinMode(PIN_DIR, OUTPUT);
+	pinMode(STEP_PIN, OUTPUT);
+	pinMode(DIR_PIN, OUTPUT);
 
-	std::vector<int32_t> steptimes;
+	std::vector<int32_t> step_times;
 
 	for (double_t current_time = 0; current_time <= TIME; current_time += 0.001)
 	{
 		if (moveTest(current_time) >= jumps + 1)
 		{
 			jumps++;
-			steptimes.push_back(int32_t(current_time * 1000 + 0.1));
+			step_times.push_back(int32_t(current_time * 1000 + 0.1));
 			current_time += 0.070;
 			Serial.printf("%d: %f | %f\n", jumps, current_time, moveTest(current_time + 100));
 		}
 	}
 
-	for (size_t i = 0; i <= MAX_DISTANCE - 3; i++)
+	for (size_t i = 0; i <= MAX_STEPS - 3; i++)
 	{
-		delays.push_back(steptimes[i + 1] - steptimes[i]);
+		delays.push_back(step_times[i + 1] - step_times[i]);
 		Serial.printf("%d: %d\n", i, delays[i]);
 	}
 
-	// steps = 0;
-
+	// setup and start timer 1
 	timer = timerBegin(0, 80, true); // 2 = 25ns, 80 = 1us
 	timerAttachInterrupt(timer, &onTimer, true);
 	timerAlarmWrite(timer, delays[steps] /*1000*/, false);
 	timerWrite(timer, 0);
 	timerAlarmEnable(timer);
-	
+
+	// setup and start timer 2
 	timer2 = timerBegin(1, 80, true); // 2 = 25ns, 80 = 1us
 	timerAttachInterrupt(timer2, &onTimer2, true);
 	timerAlarmWrite(timer2, 8, false);
@@ -131,8 +131,11 @@ void setup()
 
 void loop()
 {
-	//Serial.printf("Steps: %d, Direction: %d\n", steps, direction);
-	if (steps >= MAX_DISTANCE - 3) // 10000 (10800)
+	// Serial.printf("Steps: %d, Direction: %d\n", steps, direction);
+
+	/* changes direction when the current amount of steps
+	is larger or equal to the max amount of steps allowed */
+	if (steps >= MAX_STEPS - 3)
 	{
 		toggleDirection(&direction);
 		steps = 0;

@@ -8,5 +8,9 @@
 			"path": "automation\\test"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"files.associations": {
+			"cmath": "cpp"
+		}
+	}
 }
