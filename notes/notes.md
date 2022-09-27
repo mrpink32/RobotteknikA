@@ -1,6 +1,6 @@
-
-
-<!-- $$ O = U_{Motor} $$ -->
-<!-- $$ M = I_{Motor} $$ -->
 ![](images/f.png)
 ![](images/ff.png)
+
+https://www.dfrobot.com/
+https://arduinotech.dk/
+https://www.elfadistrelec.dk/
