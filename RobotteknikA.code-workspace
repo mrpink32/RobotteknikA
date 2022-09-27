@@ -6,6 +6,10 @@
 		{
 			"name": "test",
 			"path": "automation\\test"
+		},
+		{
+			"name": "robotarm",
+			"path": "robotarm"
 		}
 	],
 	"settings": {
