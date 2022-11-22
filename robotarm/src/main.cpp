@@ -367,19 +367,6 @@ void setup_network()
   WebSocket.onEvent(onWebSocketEvent);
 }
 
-void setup_tasks()
-{
-  log_i("starting motion task");
-  xTaskCreatePinnedToCore(
-      motion_task,
-      "motion_task",
-      10000, /* Stack size in words */
-      NULL,  /* Task input parameter */
-      2,     /* Priority of the task from 0 to 25, higher number = higher priority */
-      &MotionTaskHandle,
-      1); /* Core where the task should run */
-}
-
 void pid_task(void *arg)
 {
   int64_t prev_pos = current_pos;
@@ -486,6 +473,19 @@ void motion_task(void *arg)
     //vTaskDelayUntil( &xLastWakeTime, xTimeIncrement);
   }
   */
+}
+
+void setup_tasks()
+{
+  log_i("starting motion task");
+  xTaskCreatePinnedToCore(
+      motion_task,
+      "motion_task",
+      10000, /* Stack size in words */
+      NULL,  /* Task input parameter */
+      2,     /* Priority of the task from 0 to 25, higher number = higher priority */
+      &MotionTaskHandle,
+      1); /* Core where the task should run */
 }
 
 void setup()
