@@ -1,24 +1,20 @@
-/*  
+/*
  * With inspiration from:
- * 
+ *
  * https://shawnhymel.com/1882/how-to-create-a-web-server-with-websockets-using-an-esp32-in-arduino/
  *
- * Author: J. Sanggaard 
+ * Author: J. Sanggaard
  * Date: 10. september 2020
- *  
+ *
  */
 #include "pid.h"
-#include <global.h>
+#include "global.h"
+#include "hbridge.h"
+#include <ESP32Encoder.h>
 #include <WiFi.h>
-//#include <WiFiClientSecure.h>
-//#include <FS.h>
 #include <SPIFFS.h>
 #include <ESPAsyncWebServer.h>
 #include <WebSocketsServer.h>
-#include <hbridge.h>
-#include <ESP32Encoder.h>
-#include "global.h"
-#include "hbridge.h"
 
 /* comment out for router connection */
 #define SOFT_AP
@@ -28,9 +24,11 @@
 const char *ssid = "grimerer";
 const char *password = "grimgrim";
 #else
-const char *ssid = "MakitaNG";
-const char *password = "...";
+const char *ssid = "grim2";
+const char *password = "1234";
 #endif
+
+// Globals
 
 const char *cmd_toggle = "toggle";
 const char *cmd_led_state = "led_state";
@@ -42,16 +40,14 @@ const int32_t dns_port = 53;
 const int32_t http_port = 80;
 const int32_t ws_port = 1337;
 const int32_t led_pin = 17;
-const int32_t encoder_a = 33;
-const int32_t encoder_b = 25;
 
 TaskHandle_t PidTaskHandle;
-
+TaskHandle_t MotionTaskHandle;
 ESP32Encoder encoder;
 Pid pid_vel(DT_S, PID_MAX_CTRL_VALUE);
 Pid pid_pos(DT_S, PID_MAX_CTRL_VALUE);
 H_Bridge hbridge;
-TaskHandle_t MotionTaskHandle;
+
 const double integration_threshold = 200;
 
 volatile double req_pos;
@@ -65,7 +61,6 @@ double ctrl_vel;
 
 bool mode_pos = true;
 
-// Globals
 AsyncWebServer Server(http_port);
 WebSocketsServer WebSocket = WebSocketsServer(ws_port);
 H_Bridge hBridge;
@@ -80,11 +75,13 @@ double KdVal = 42.0;
  */
 void web_socket_send(const char *buffer, uint8_t client_num, bool broadcast)
 {
-  if (broadcast) {
+  if (broadcast)
+  {
     log_d("Broadcasting: %s", buffer);
     WebSocket.broadcastTXT(buffer, strlen(buffer)); // all clients
   }
-  else {
+  else
+  {
     log_d("Sending to [%u]: %s", client_num, buffer);
     WebSocket.sendTXT(client_num, buffer); // only one client
   }
@@ -121,7 +118,7 @@ void handle_led_state(char *command, uint8_t client_num)
     int32_t result = strtol(value + 1, &e, 10);
     if (*e == '\0' && 0 == errno) // no error
     {
-     LedState = result;
+      LedState = result;
       log_d("[%u]: LedState received %d", client_num, LedState);
     }
     else
@@ -132,7 +129,6 @@ void handle_led_state(char *command, uint8_t client_num)
     web_socket_send(MsgBuf, client_num, true);
   }
 }
-
 
 void handle_slider(char *command, uint8_t client_num)
 {
@@ -166,8 +162,6 @@ void handle_slider(char *command, uint8_t client_num)
     sprintf(MsgBuf, "%s:%d", cmd_sli, SliderVal);
     web_socket_send(MsgBuf, client_num, true);
   }
-
-  
 }
 
 void handle_kx(char *command, uint8_t client_num)
@@ -373,45 +367,6 @@ void setup_network()
   WebSocket.onEvent(onWebSocketEvent);
 }
 
-void motion_task(void *arg)
-{
-  home();
-
-  vTaskDelay(5000);
-  int32_t n = 0;
-  //int32_t steps_pr_deg = 1920;
-
-  //TickType_t xTimeIncrement = configTICK_RATE_HZ/10;
-  //TickType_t xLastWakeTime = xTaskGetTickCount();
-  for (;;)
-    log_v("motion_task...");
-
-    //set_pos(steps_pr_deg*(90+n*90)); // 90 deg
-    set_pos(n * 500 * 4 * 4.8); // 1 round
-    wait_move();
-    vTaskDelay(5000);
-    n++;
-    //vTaskDelayUntil( &xLastWakeTime, xTimeIncrement);
-
-
-  HBridge.begin(PIN_MOTOR_CTRL, PIN_MOTOR_INA, PIN_MOTOR_INB,
-                PWM_FREQ_HZ, PWM_RES_BITS, PWM_CH);
-
-  TickType_t xTimeIncrement = configTICK_RATE_HZ / 10;
-  TickType_t xLastWakeTime = xTaskGetTickCount();
-  for (;;)
-  {
-    log_v("motion_task running...");
-    int32_t pwm_val = SliderVal;
-    if (LedState == 0)
-    {
-      pwm_val = -pwm_val;
-    }
-    HBridge.set_pwm(pwm_val);
-    vTaskDelayUntil(&xLastWakeTime, xTimeIncrement);
-  }
-}
-
 void setup_tasks()
 {
   log_i("starting motion task");
@@ -492,8 +447,52 @@ void set_pos(int32_t pos)
   req_pos = pos;
 }
 
+void motion_task(void *arg)
+{
+  home();
+
+  hBridge.begin(PIN_HBRIDGE_PWM, PIN_HBRIDGE_INA, PIN_HBRIDGE_INB,
+                PWM_FREQ_HZ, PWM_RES_BITS, PWM_CH, MAX_CTRL_VALUE);
+
+  TickType_t xTimeIncrement = configTICK_RATE_HZ / 10;
+  TickType_t xLastWakeTime = xTaskGetTickCount();
+  for (;;)
+  {
+    log_v("motion_task running...");
+    int32_t pwm_val = SliderVal;
+    if (LedState == 0)
+    {
+      pwm_val = -pwm_val;
+    }
+    hBridge.set_pwm(pwm_val);
+    vTaskDelayUntil(&xLastWakeTime, xTimeIncrement);
+  }
+  /*
+  vTaskDelay(5000);
+  int32_t n = 0;
+  //int32_t steps_pr_deg = 1920;
+
+  //TickType_t xTimeIncrement = configTICK_RATE_HZ/10;
+  //TickType_t xLastWakeTime = xTaskGetTickCount();
+  for (;;)
+  {
+    log_v("motion_task...");
+
+    //set_pos(steps_pr_deg*(90+n*90)); // 90 deg
+    set_pos(n * 500 * 4 * 4.8); // 1 round
+    wait_move();
+    vTaskDelay(5000);
+    n++;
+    //vTaskDelayUntil( &xLastWakeTime, xTimeIncrement);
+  }
+  */
+}
+
 void setup()
 {
+  // disableCore0WDT();
+  // disableCore1WDT();
+
   // Init LED and turn off
   pinMode(led_pin, OUTPUT);
   digitalWrite(led_pin, LOW);
@@ -501,15 +500,12 @@ void setup()
   // Start Serial port
   Serial.begin(115200);
 
+  pinMode(PIN_PID_LOOP, OUTPUT);
+  pinMode(PIN_LIMIT_SW, INPUT);
+
   setup_spiffs();
   setup_network();
   setup_tasks();
-
-  //disableCore0WDT();
-  //disableCore1WDT();
-  Serial.begin(115200);
-  pinMode(PIN_PID_LOOP, OUTPUT);
-  pinMode(PIN_LIMIT_SW, INPUT);
 
   ESP32Encoder::useInternalWeakPullResistors = UP; // Enable the weak pull up resistors
   encoder.attachFullQuad(PIN_ENC_A, PIN_ENC_B);    // Attache pins for use as encoder pins
@@ -518,7 +514,7 @@ void setup()
   hbridge.begin(PIN_HBRIDGE_PWM, PIN_HBRIDGE_INA, PIN_HBRIDGE_INB,
                 PWM_FREQ_HZ, PWM_RES_BITS, PWM_CH, PID_MAX_CTRL_VALUE);
 
-  pid_pos.set_kp(20.0); //12
+  pid_pos.set_kp(20.0); // 12
   pid_pos.set_ki(5.0);
   pid_pos.set_kd(0.000);
 
@@ -545,8 +541,6 @@ void setup()
       2,    /* Priority of the task from 0 to 25, higher number = higher priority */
       &MotionTaskHandle,
       0); /* Core where the task should run */
-
-
 }
 
 void loop()
@@ -560,12 +554,9 @@ void loop()
 
   /*
   int32_t pid_stack_min =  uxTaskGetStackHighWaterMark(PidTaskHandle);
-  int32_t motion_stack_min = uxTaskGetStackHighWaterMark(MotionTaskHandle);  
+  int32_t motion_stack_min = uxTaskGetStackHighWaterMark(MotionTaskHandle);
   log_i("min stack avaliable [bytes], pid: %d,  motion: %d", pid_stack_min, motion_stack_min);
   */
 
   vTaskDelay(0.2 * configTICK_RATE_HZ);
-
 }
-
-
