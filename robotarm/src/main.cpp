@@ -38,6 +38,9 @@ const int32_t dns_port = 53;
 const int32_t http_port = 80;
 const int32_t ws_port = 1337;
 const int32_t led_pin = 17;
+const int32_t encoder_a = 33;
+const int32_t encoder_b = 25;
+
 
 // Globals
 AsyncWebServer Server(http_port);
