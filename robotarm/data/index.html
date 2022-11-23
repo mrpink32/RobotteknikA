@@ -124,7 +124,7 @@
             inp_slider.max = 100;
             inp_slider.value = 0;
 
-            const parameters = ["kp", "ki", "kd"];
+            const parameters = ["kp", "ki", "kd", "pos"];
             for (const p in parameters) {
                 let v = parameters[p] // important to use let
 
@@ -169,6 +169,13 @@
             var cmd = `pid_${parm}:${value}`;
             doSend(cmd);
         }
+
+        // function onclick_btn_req_pos(parm) {
+        //     console.log("onclick: " + parm)
+        //     var value = txa_kx[parm].value;
+        //     var cmd = `pid_${parm}:${value}`;
+        //     doSend(cmd);
+        // }
 
         function request_all_data() {
             doSend(Cmd_LedState + ":?");
@@ -337,6 +344,10 @@
         <tr>
             <td><button id="btn_set_kd">Set kd</button></td>
             <td><textarea id="txa_kd"></textarea></td>
+        </tr>
+        <tr>
+            <td><button id="btn_set_pos">Request position</button></td>
+            <td><textarea id="txa_pos"></textarea></td>
         </tr>
     </table>
 
