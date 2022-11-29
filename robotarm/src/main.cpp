@@ -34,6 +34,7 @@ const char *cmd_toggle = "toggle";
 const char *cmd_led_state = "led_state";
 const char *cmd_sli = "sli";
 const char *cmd_pid = "pid_";
+const char *cmd_pos = "req_pos";
 
 const int32_t wifi_channel = 9; // alle grupper skal have hver sin kanal
 const int32_t dns_port = 53;
@@ -43,10 +44,11 @@ const int32_t led_pin = 17;
 
 TaskHandle_t PidTaskHandle;
 TaskHandle_t MotionTaskHandle;
+TaskHandle_t WebserverTaskHandle;
 ESP32Encoder encoder;
 Pid pid_vel(DT_S, PID_MAX_CTRL_VALUE);
 Pid pid_pos(DT_S, PID_MAX_CTRL_VALUE);
-H_Bridge hbridge;
+H_Bridge hBridge;
 
 const double integration_threshold = 200;
 
@@ -63,13 +65,13 @@ bool mode_pos = true;
 
 AsyncWebServer Server(http_port);
 WebSocketsServer WebSocket = WebSocketsServer(ws_port);
-H_Bridge hBridge;
 char MsgBuf[32];
 int32_t LedState = 0;
 int32_t SliderVal = 0;
 double KpVal = 3.1415;
 double KiVal = 2.71;
 double KdVal = 42.0;
+
 /***********************************************************
  * Functions
  */
@@ -164,6 +166,49 @@ void handle_slider(char *command, uint8_t client_num)
 	}
 }
 
+void set_pos(int32_t pos)
+{
+	req_pos = pos;
+}
+
+void handle_pos_req(char *command, uint8_t client_num)
+{
+	char *value = strstr(command, ":");
+
+	if (value == NULL || *value != ':')
+	{
+		log_e("[%u]: Bad command %s", client_num, command);
+		return;
+	}
+
+	if (*(value + 1) == '?')
+	{
+		sprintf(MsgBuf, "%s:%d", cmd_pos, req_pos);
+		web_socket_send(MsgBuf, client_num, false);
+	}
+	else
+	{
+		errno = 0;
+		char *e;
+		double result = strtol(value + 1, &e, 10);
+		Serial.println(result);
+		if (*e == '\0' && 0 == errno) // no error
+		{
+			// req_pos = result;
+			set_pos(result);
+			sprintf(MsgBuf, "%s:%f", cmd_pos, req_pos);
+			web_socket_send(MsgBuf, client_num, true);
+		}
+		else
+		{
+			log_e("[%u]: illegal Slidervalue received: %s", client_num, value + 1);
+		}
+		Serial.println(req_pos);
+		// sprintf(MsgBuf, "%s:%d", cmd_pos, &req_pos);
+		// web_socket_send(MsgBuf, client_num, true);
+	}
+}
+
 void handle_kx(char *command, uint8_t client_num)
 {
 	char *value = strstr(command, ":");
@@ -237,6 +282,8 @@ void handle_command(uint8_t client_num, uint8_t *payload, size_t length)
 		handle_slider(command, client_num); // slider
 	else if (strncmp(command, cmd_pid, strlen(cmd_pid)) == 0)
 		handle_kx(command, client_num); // pid params
+	else if (strncmp(command, cmd_pos, strlen(cmd_pos)) == 0)
+		handle_pos_req(command, client_num); // position request
 	else
 		log_e("[%u] Message not recognized", client_num);
 
@@ -374,7 +421,6 @@ void setup_network()
 void pid_task(void *arg)
 {
 	int64_t prev_pos = current_pos;
-
 	TickType_t xTimeIncrement = configTICK_RATE_HZ * pid_pos.get_dt();
 	TickType_t xLastWakeTime = xTaskGetTickCount();
 	for (;;)
@@ -393,7 +439,7 @@ void pid_task(void *arg)
 
 		pid_vel.update(req_vel * 10, current_vel, &ctrl_vel, 100000);
 
-		hbridge.set_pwm(ctrl_vel);
+		hBridge.set_pwm(ctrl_vel);
 
 		prev_pos = current_pos;
 		digitalWrite(PIN_PID_LOOP, LOW);
@@ -411,7 +457,7 @@ void wait_move()
 
 void home()
 {
-	log_v("home initiated...");
+	log_i("home initiated...");
 	req_vel = 40000;
 	mode_pos = false;
 
@@ -430,21 +476,14 @@ void home()
 	req_pos = 0;
 	encoder.setCount(-14100);
 	wait_move();
-	log_v("home complete.");
-}
-
-void set_pos(int32_t pos)
-{
-	req_pos = pos;
+	log_i("home complete.");
 }
 
 void motion_task(void *arg)
 {
 	home();
 	int32_t n = 0;
-	hBridge.begin(PIN_HBRIDGE_PWM, PIN_HBRIDGE_INA, PIN_HBRIDGE_INB,
-				  PWM_FREQ_HZ, PWM_RES_BITS, PWM_CH, MAX_CTRL_VALUE);
-
+	vTaskDelay(5000);
 	TickType_t xTimeIncrement = configTICK_RATE_HZ / 10;
 	TickType_t xLastWakeTime = xTaskGetTickCount();
 	for (;;)
@@ -462,29 +501,35 @@ void motion_task(void *arg)
 		n++;
 		vTaskDelayUntil(&xLastWakeTime, xTimeIncrement);
 	}
-	/*
-	vTaskDelay(5000);
-	int32_t n = 0;
-	//int32_t steps_pr_deg = 1920;
+}
 
-	//TickType_t xTimeIncrement = configTICK_RATE_HZ/10;
-	//TickType_t xLastWakeTime = xTaskGetTickCount();
+void websocket_task(void *arg)
+{
 	for (;;)
 	{
-	  log_v("motion_task...");
+		// Look for and handle WebSocket data
+		WebSocket.loop();
 
-	  //set_pos(steps_pr_deg*(90+n*90)); // 90 deg
-	  set_pos(n * 500 * 4 * 4.8); // 1 round
-	  wait_move();
-	  vTaskDelay(5000);
-	  n++;
-	  //vTaskDelayUntil( &xLastWakeTime, xTimeIncrement);
+		Serial.printf(
+			"req_pos: %.2f  curr_pos: %.2f  ctrl_pos: %.2f  set_vel: %.2f  curr_vel: %.2f ctrl_vel: %.2f\n\r",
+			req_pos, (double)current_pos, ctrl_pos, req_vel, current_vel, ctrl_vel);
+		delay(10);
+
+		// vTaskDelay(0.2 * configTICK_RATE_HZ);
 	}
-	*/
 }
 
 void setup_tasks()
 {
+	log_i("starting pid task");
+	xTaskCreatePinnedToCore(
+		pid_task,		/* Function to implement the task */
+		"pid_task",		/* Name of the task */
+		3000,			/* Stack size in words */
+		NULL,			/* Task input parameter */
+		3,				/* Priority of the task from 0 to 25, higher number = higher priority */
+		&PidTaskHandle, /* Task handle. */
+		1);				/* Core where the task should run */
 	log_i("starting motion task");
 	xTaskCreatePinnedToCore(
 		motion_task,
@@ -494,6 +539,15 @@ void setup_tasks()
 		2,	   /* Priority of the task from 0 to 25, higher number = higher priority */
 		&MotionTaskHandle,
 		1); /* Core where the task should run */
+	log_v("starting webserver task");
+	// xTaskCreatePinnedToCore(
+	// 	websocket_task,
+	// 	"webserver_task",
+	// 	5000,
+	// 	NULL,
+	// 	4,
+	// 	&WebserverTaskHandle,
+	// 	1);
 }
 
 void setup()
@@ -511,15 +565,11 @@ void setup()
 	pinMode(PIN_PID_LOOP, OUTPUT);
 	pinMode(PIN_LIMIT_SW, INPUT);
 
-	setup_spiffs();
-	setup_network();
-	setup_tasks();
-
 	ESP32Encoder::useInternalWeakPullResistors = UP; // Enable the weak pull up resistors
 	encoder.attachFullQuad(PIN_ENC_A, PIN_ENC_B);	 // Attache pins for use as encoder pins
 	encoder.clearCount();
 
-	hbridge.begin(PIN_HBRIDGE_PWM, PIN_HBRIDGE_INA, PIN_HBRIDGE_INB,
+	hBridge.begin(PIN_HBRIDGE_PWM, PIN_HBRIDGE_INA, PIN_HBRIDGE_INB,
 				  PWM_FREQ_HZ, PWM_RES_BITS, PWM_CH, PID_MAX_CTRL_VALUE);
 
 	pid_pos.set_kp(20.0); // 12
@@ -530,25 +580,9 @@ void setup()
 	pid_vel.set_ki(4);
 	pid_vel.set_kd(0);
 
-	log_v("starting pid task");
-	xTaskCreatePinnedToCore(
-		pid_task,		/* Function to implement the task */
-		"pid_task",		/* Name of the task */
-		3000,			/* Stack size in words */
-		NULL,			/* Task input parameter */
-		3,				/* Priority of the task from 0 to 25, higher number = higher priority */
-		&PidTaskHandle, /* Task handle. */
-		1);				/* Core where the task should run */
-
-	log_v("starting motion task");
-	xTaskCreatePinnedToCore(
-		motion_task,
-		"motion_task",
-		3000, /* Stack size in words */
-		NULL, /* Task input parameter */
-		2,	  /* Priority of the task from 0 to 25, higher number = higher priority */
-		&MotionTaskHandle,
-		0); /* Core where the task should run */
+	setup_spiffs();
+	setup_network();
+	setup_tasks();
 }
 
 void loop()
@@ -559,12 +593,7 @@ void loop()
 	Serial.printf(
 		"req_pos: %.2f  curr_pos: %.2f  ctrl_pos: %.2f  set_vel: %.2f  curr_vel: %.2f ctrl_vel: %.2f\n\r",
 		req_pos, (double)current_pos, ctrl_pos, req_vel, current_vel, ctrl_vel);
-
-	/*
-	int32_t pid_stack_min =  uxTaskGetStackHighWaterMark(PidTaskHandle);
-	int32_t motion_stack_min = uxTaskGetStackHighWaterMark(MotionTaskHandle);
-	log_i("min stack avaliable [bytes], pid: %d,  motion: %d", pid_stack_min, motion_stack_min);
-	*/
+	// delay(10);
 
 	vTaskDelay(0.2 * configTICK_RATE_HZ);
 }

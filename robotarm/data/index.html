@@ -72,6 +72,7 @@
         const Cmd_Toggle = "toggle";
         const Cmd_LedState = "led_state";
         const Cmd_Slider = "sli";
+        const Cmd_Pos = "req_pos"
 
         // system vars
         var btn_onoff;          // Toggle button to turn the robot on and off
@@ -82,6 +83,9 @@
         // pid subsystem vars 
         var btn_set_kx = [];    // Array of Buttons that When clicked submits kx value to robot
         var txa_kx = [];        // Array of TextAreas where user can enter kx value
+        var txa_req_pos;
+        var btn_req_pos;
+
 
         function get_url() {
             return "ws://" + window.location.hostname + ":1337/";
@@ -124,7 +128,14 @@
             inp_slider.max = 100;
             inp_slider.value = 0;
 
-            const parameters = ["kp", "ki", "kd", "pos"];
+            txa_req_pos = document.getElementById("txa_req_pos");
+            txa_req_pos.innerHTML = "0";
+            btn_req_pos = document.getElementById("btn_req_pos");
+            btn_req_pos.disabled = false;
+            btn_req_pos.onclick = function (evt) { console.log(evt); onclick_btn_req_pos(); }
+
+
+            const parameters = ["kp", "ki", "kd"];
             for (const p in parameters) {
                 let v = parameters[p] // important to use let
 
@@ -170,12 +181,12 @@
             doSend(cmd);
         }
 
-        // function onclick_btn_req_pos(parm) {
-        //     console.log("onclick: " + parm)
-        //     var value = txa_kx[parm].value;
-        //     var cmd = `pid_${parm}:${value}`;
-        //     doSend(cmd);
-        // }
+        function onclick_btn_req_pos() {
+            console.log("onclick:  grim")
+            var value = txa_req_pos.value;
+            var cmd = `req_pos:${value}`;
+            doSend(cmd);
+        }
 
         function request_all_data() {
             doSend(Cmd_LedState + ":?");
@@ -183,6 +194,7 @@
             doSend("pid_kp:?");
             doSend("pid_ki:?");
             doSend("pid_kd:?");
+            doSend(Cmd_Pos + ":?");
         }
 
 
@@ -214,6 +226,7 @@
             btn_set_ki.disabled = false;
             btn_set_kd.disabled = false;
             inp_slider.disabled = false;
+            btn_req_pos.disabled = false;
 
             // Get the current state of gui
             request_all_data();
@@ -234,6 +247,7 @@
             btn_set_ki.disabled = true;
             btn_set_kd.disabled = true;
             inp_slider.disabled = true;
+            btn_req_pos.disabled = true;
 
             // Try to reconnect after a few seconds
             setTimeout(function () { url = get_url(); wsConnect(url) }, 2000);
@@ -288,6 +302,10 @@
                 case "pid_kd":
                     console.log(`kd value received: ${value}`);
                     txa_kx["kd"].value = value;
+                    break;
+                case "req_pos":
+                console.log(`pos value received: ${value}`);
+                    txa_req_pos.innerHTML = value;
                     break;
                 default:
                     break;
@@ -346,8 +364,8 @@
             <td><textarea id="txa_kd"></textarea></td>
         </tr>
         <tr>
-            <td><button id="btn_set_pos">Request position</button></td>
-            <td><textarea id="txa_pos"></textarea></td>
+            <td><button id="btn_req_pos">Request position</button></td>
+            <td><textarea id="txa_req_pos"></textarea></td>
         </tr>
     </table>
 
