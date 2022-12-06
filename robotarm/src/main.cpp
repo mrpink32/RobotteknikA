@@ -35,6 +35,7 @@ const char *cmd_led_state = "led_state";
 const char *cmd_sli = "sli";
 const char *cmd_pid = "pid_";
 const char *cmd_pos = "req_pos";
+const char *cmd_vel = "req_vel";
 
 const int32_t wifi_channel = 9; // alle grupper skal have hver sin kanal
 const int32_t dns_port = 53;
@@ -56,7 +57,7 @@ volatile double req_pos;
 volatile double req_vel;
 volatile int64_t current_pos;
 volatile double current_vel;
-volatile double max_vel = 9600 / 10;
+volatile double max_vel = 300;
 
 double ctrl_pos;
 double ctrl_vel;
@@ -68,8 +69,8 @@ WebSocketsServer WebSocket = WebSocketsServer(ws_port);
 char MsgBuf[32];
 int32_t LedState = 0;
 int32_t SliderVal = 0;
-double KpVal = 3.1415;
-double KiVal = 2.71;
+double KpVal = 10;
+double KiVal = 2;
 double KdVal = 0.0;
 
 /***********************************************************
@@ -155,7 +156,7 @@ void handle_slider(char *command, uint8_t client_num)
 		if (*e == '\0' && 0 == errno) // no error
 		{
 			SliderVal = result;
-			log_d("[%u]: Slidervalue received %d", client_num, SliderVal);
+			log_i("[%u]: Slidervalue received %d", client_num, SliderVal);
 		}
 		else
 		{
@@ -183,7 +184,7 @@ void handle_pos_req(char *command, uint8_t client_num)
 
 	if (*(value + 1) == '?')
 	{
-		sprintf(MsgBuf, "%s:%d", cmd_pos, req_pos);
+		sprintf(MsgBuf, "%s:%d", cmd_pos, encoder.getCount());
 		web_socket_send(MsgBuf, client_num, false);
 	}
 	else
@@ -196,16 +197,51 @@ void handle_pos_req(char *command, uint8_t client_num)
 		{
 			// req_pos = result;
 			set_pos(result);
-			sprintf(MsgBuf, "%s:%f", cmd_pos, req_pos);
+			sprintf(MsgBuf, "%s:%f", cmd_pos, encoder.getCount());
 			web_socket_send(MsgBuf, client_num, true);
 		}
 		else
 		{
 			log_e("[%u]: illegal Slidervalue received: %s", client_num, value + 1);
 		}
-		Serial.println(req_pos);
+		Serial.println(encoder.getCount());
 		// sprintf(MsgBuf, "%s:%d", cmd_pos, &req_pos);
 		// web_socket_send(MsgBuf, client_num, true);
+	}
+}
+
+void handle_vel_req(char *command, uint8_t client_num)
+{
+	char *value = strstr(command, ":");
+
+	if (value == NULL || *value != ':')
+	{
+		log_e("[%u]: Bad command %s", client_num, command);
+		return;
+	}
+
+	if (*(value + 1) == '?')
+	{
+		sprintf(MsgBuf, "%s:%d", cmd_vel, max_vel);
+		web_socket_send(MsgBuf, client_num, false);
+	}
+	else
+	{
+		errno = 0;
+		char *e;
+		double result = strtol(value + 1, &e, 10);
+		Serial.println(result);
+		if (*e == '\0' && 0 == errno) // no error
+		{
+			max_vel = result;
+			sprintf(MsgBuf, "%s:%f", cmd_vel, max_vel);
+			web_socket_send(MsgBuf, client_num, true);
+		}
+		else
+		{
+			log_e("[%u]: illegal Slidervalue received: %s", client_num, value + 1);
+		}
+		// Serial.println("",current_vel);
 	}
 }
 
@@ -284,6 +320,8 @@ void handle_command(uint8_t client_num, uint8_t *payload, size_t length)
 		handle_kx(command, client_num); // pid params
 	else if (strncmp(command, cmd_pos, strlen(cmd_pos)) == 0)
 		handle_pos_req(command, client_num); // position request
+	else if (strncmp(command, cmd_vel, strlen(cmd_vel)) == 0)
+		handle_vel_req(command, client_num); // velocity request
 	else
 		log_e("[%u] Message not recognized", client_num);
 
@@ -480,44 +518,21 @@ void home()
 	log_i("home complete.");
 }
 
-void motion_task(void *arg)
-{
-	home();
-	int32_t n = 0;
-	vTaskDelay(5000);
-	TickType_t xTimeIncrement = configTICK_RATE_HZ / 10;
-	TickType_t xLastWakeTime = xTaskGetTickCount();
-	for (;;)
-	{
-		log_v("motion_task running...");
-		int32_t pwm_val = SliderVal;
-		if (LedState == 0)
-		{
-			pwm_val = -pwm_val;
-		}
-		hBridge.set_pwm(pwm_val);
-		wait_move();
-		vTaskDelay(5000);
-		n++;
-		vTaskDelayUntil(&xLastWakeTime, xTimeIncrement);
-	}
-}
+// void websocket_task(void *arg)
+// {
+// 	for (;;)
+// 	{
+// 		// Look for and handle WebSocket data
+// 		WebSocket.loop();
 
-void websocket_task(void *arg)
-{
-	for (;;)
-	{
-		// Look for and handle WebSocket data
-		WebSocket.loop();
+// 		Serial.printf(
+// 			"req_pos: %.2f  curr_pos: %.2f  ctrl_pos: %.2f  set_vel: %.2f  curr_vel: %.2f ctrl_vel: %.2f\n\r",
+// 			req_pos, (double)current_pos, ctrl_pos, req_vel, current_vel, ctrl_vel);
+// 		delay(10);
 
-		Serial.printf(
-			"req_pos: %.2f  curr_pos: %.2f  ctrl_pos: %.2f  set_vel: %.2f  curr_vel: %.2f ctrl_vel: %.2f\n\r",
-			req_pos, (double)current_pos, ctrl_pos, req_vel, current_vel, ctrl_vel);
-		delay(10);
-
-		// vTaskDelay(0.2 * configTICK_RATE_HZ);
-	}
-}
+// 		// vTaskDelay(0.2 * configTICK_RATE_HZ);
+// 	}
+// }
 
 void setup_tasks()
 {
@@ -530,16 +545,8 @@ void setup_tasks()
 		3,				/* Priority of the task from 0 to 25, higher number = higher priority */
 		&PidTaskHandle, /* Task handle. */
 		1);				/* Core where the task should run */
-	log_i("starting motion task");
-	xTaskCreatePinnedToCore(
-		motion_task,
-		"motion_task",
-		10000, /* Stack size in words */
-		NULL,  /* Task input parameter */
-		2,	   /* Priority of the task from 0 to 25, higher number = higher priority */
-		&MotionTaskHandle,
-		1); /* Core where the task should run */
-	log_v("starting webserver task");
+
+	// log_v("starting webserver task");
 	// xTaskCreatePinnedToCore(
 	// 	websocket_task,
 	// 	"webserver_task",
@@ -577,7 +584,7 @@ void setup()
 	pid_pos.set_kd(0.000);
 
 	pid_vel.set_kp(0);
-	pid_vel.set_ki(4);
+	pid_vel.set_ki(12);
 	pid_vel.set_kd(0);
 
 	setup_spiffs();
@@ -594,6 +601,7 @@ void loop()
 		"req_pos: %.2f  curr_pos: %.2f  ctrl_pos: %.2f  set_vel: %.2f  curr_vel: %.2f ctrl_vel: %.2f\n\r",
 		req_pos, (double)current_pos, ctrl_pos, req_vel, current_vel, ctrl_vel);
 	Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", pid_pos.get_kp(), pid_pos.get_ki(), pid_pos.get_kd(), pid_pos.get_error());
+	Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", pid_vel.get_kp(), pid_vel.get_ki(), pid_vel.get_kd(), pid_vel.get_error());
 	// delay(10);
 
 	vTaskDelay(0.2 * configTICK_RATE_HZ);

@@ -72,7 +72,9 @@
         const Cmd_Toggle = "toggle";
         const Cmd_LedState = "led_state";
         const Cmd_Slider = "sli";
-        const Cmd_Pos = "req_pos"
+        const Cmd_Pos = "req_pos";
+        const Cmd_Vel = "req_vel";
+        
 
         // system vars
         var btn_onoff;          // Toggle button to turn the robot on and off
@@ -85,6 +87,8 @@
         var txa_kx = [];        // Array of TextAreas where user can enter kx value
         var txa_req_pos;
         var btn_req_pos;
+        var txa_req_vel;
+        var btn_req_vel;
 
 
         function get_url() {
@@ -124,15 +128,22 @@
             inp_slider.type = "range";
             inp_slider.classList.add("slider");    // instead of class="slider" in html tag
             inp_slider.onchange = onchange_inp_slider;
+            inp_slider.step = 0.001;
             inp_slider.min = 0;
-            inp_slider.max = 100;
-            inp_slider.value = 0;
+            inp_slider.max = 1;
+            inp_slider.value = 0.001;
 
             txa_req_pos = document.getElementById("txa_req_pos");
             txa_req_pos.innerHTML = "0";
             btn_req_pos = document.getElementById("btn_req_pos");
             btn_req_pos.disabled = false;
             btn_req_pos.onclick = function (evt) { console.log(evt); onclick_btn_req_pos(); }
+
+            txa_req_vel = document.getElementById("txa_req_vel");
+            txa_req_vel.innerHTML = "0";
+            btn_req_vel = document.getElementById("btn_req_vel");
+            btn_req_vel.disabled = false;
+            btn_req_vel.onclick = function (evt) { console.log(evt); onclick_btn_req_vel(); }
 
 
             const parameters = ["kp", "ki", "kd"];
@@ -188,6 +199,13 @@
             doSend(cmd);
         }
 
+        function onclick_btn_req_vel() {
+            console.log("onclick:  grim")
+            var value = txa_req_vel.value;
+            var cmd = `req_vel:${value}`;
+            doSend(cmd);
+        }
+
         function request_all_data() {
             doSend(Cmd_LedState + ":?");
             doSend(Cmd_Slider + ":?");
@@ -195,6 +213,7 @@
             doSend("pid_ki:?");
             doSend("pid_kd:?");
             doSend(Cmd_Pos + ":?");
+            doSend(Cmd_Vel + ":?");
         }
 
 
@@ -227,6 +246,7 @@
             btn_set_kd.disabled = false;
             inp_slider.disabled = false;
             btn_req_pos.disabled = false;
+            btn_req_vel.disabled = false;
 
             // Get the current state of gui
             request_all_data();
@@ -248,6 +268,8 @@
             btn_set_kd.disabled = true;
             inp_slider.disabled = true;
             btn_req_pos.disabled = true;
+            btn_req_vel.disabled = true;
+            
 
             // Try to reconnect after a few seconds
             setTimeout(function () { url = get_url(); wsConnect(url) }, 2000);
@@ -306,6 +328,10 @@
                 case "req_pos":
                 console.log(`pos value received: ${value}`);
                     txa_req_pos.innerHTML = value;
+                    break;
+                case "req_vel":
+                console.log(`vel value received: ${value}`);
+                    txa_req_vel.innerHTML = value;
                     break;
                 default:
                     break;
@@ -366,6 +392,10 @@
         <tr>
             <td><button id="btn_req_pos">Request position</button></td>
             <td><textarea id="txa_req_pos"></textarea></td>
+        </tr>
+        <tr>
+            <td><button id="btn_req_vel">Request velocity</button></td>
+            <td><textarea id="txa_req_vel"></textarea></td>
         </tr>
     </table>
 
