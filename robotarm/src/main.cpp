@@ -21,7 +21,7 @@
 
 /* Constants */
 #ifdef SOFT_AP
-const char *ssid = "grimerer";
+const char *ssid = "grim";
 const char *password = "grimgrim";
 #else
 const char *ssid = "grim2";
@@ -70,7 +70,7 @@ int32_t LedState = 0;
 int32_t SliderVal = 0;
 double KpVal = 3.1415;
 double KiVal = 2.71;
-double KdVal = 42.0;
+double KdVal = 0.0;
 
 /***********************************************************
  * Functions
@@ -437,7 +437,7 @@ void pid_task(void *arg)
 			req_vel = constrain(ctrl_pos, -max_vel, max_vel);
 		}
 
-		pid_vel.update(req_vel * 10, current_vel, &ctrl_vel, 100000);
+		pid_vel.update(req_vel, current_vel, &ctrl_vel, 100000);
 
 		hBridge.set_pwm(ctrl_vel);
 
@@ -474,8 +474,9 @@ void home()
 
 	mode_pos = true;
 	req_pos = 0;
-	encoder.setCount(-14100);
+	encoder.setCount(0);
 	wait_move();
+	log_i("vel: %f, pos: %f", req_vel, req_pos);
 	log_i("home complete.");
 }
 
@@ -495,7 +496,6 @@ void motion_task(void *arg)
 			pwm_val = -pwm_val;
 		}
 		hBridge.set_pwm(pwm_val);
-		set_pos(n * 500 * 4 * 4.8); // 1 round
 		wait_move();
 		vTaskDelay(5000);
 		n++;
@@ -572,8 +572,8 @@ void setup()
 	hBridge.begin(PIN_HBRIDGE_PWM, PIN_HBRIDGE_INA, PIN_HBRIDGE_INB,
 				  PWM_FREQ_HZ, PWM_RES_BITS, PWM_CH, PID_MAX_CTRL_VALUE);
 
-	pid_pos.set_kp(20.0); // 12
-	pid_pos.set_ki(5.0);
+	pid_pos.set_kp(10.0); // 12
+	pid_pos.set_ki(2.0);
 	pid_pos.set_kd(0.000);
 
 	pid_vel.set_kp(0);
@@ -593,6 +593,7 @@ void loop()
 	Serial.printf(
 		"req_pos: %.2f  curr_pos: %.2f  ctrl_pos: %.2f  set_vel: %.2f  curr_vel: %.2f ctrl_vel: %.2f\n\r",
 		req_pos, (double)current_pos, ctrl_pos, req_vel, current_vel, ctrl_vel);
+	Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", pid_pos.get_kp(), pid_pos.get_ki(), pid_pos.get_kd(), pid_pos.get_error());
 	// delay(10);
 
 	vTaskDelay(0.2 * configTICK_RATE_HZ);
