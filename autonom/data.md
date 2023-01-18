@@ -1,3 +1,6 @@
-$length = 340 mm$
+Length $340 mm$
 
-$width = 195 mm$
+Width: $195 mm$
+
+Frame piece width: $20 mm$
+
