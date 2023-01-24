@@ -5,15 +5,20 @@
 const int32_t PIN_PID_LOOP = 16;
 const int32_t PIN_ENC_A = 26;
 const int32_t PIN_ENC_B = 27;
-const int32_t PIN_PID_LOOP_2 = 90;
-const int32_t PIN_ENC_A_2 = 900;
-const int32_t PIN_ENC_B_2 = 900;
+
+const int32_t PIN_PID_LOOP_2 = 2;
+const int32_t PIN_ENC_A_2 = 33;
+const int32_t PIN_ENC_B_2 = 25;
 
 const int32_t PIN_HBRIDGE_INA = 18; // hbridge INA pin
 const int32_t PIN_HBRIDGE_INB = 19; // hbridge INB pin
 const int32_t PIN_HBRIDGE_PWM = 23; // hbridhe PWM pin
 
-const int32_t PIN_LIMIT_SW = 23;
+const int32_t PIN_HBRIDGE_INA2 = 5; // hbridge INA pin
+const int32_t PIN_HBRIDGE_INB2 = 4; // hbridge INB pin
+const int32_t PIN_HBRIDGE_PWM2 = 0; // hbridhe PWM pin
+
+const int32_t PIN_LIMIT_SW = 24;
 
 // PWM SETUP
 const int32_t PWM_CH = 0;                         // 0 - 7(15?)  = 8(16?) channels
