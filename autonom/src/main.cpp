@@ -341,9 +341,9 @@ void handle_command(uint8_t client_num, uint8_t *payload, size_t length)
 
 // Callback: receiving any WebSocket message
 void onWebSocketEvent(uint8_t client_num,
-											WStype_t type,
-											uint8_t *payload,
-											size_t length)
+					  WStype_t type,
+					  uint8_t *payload,
+					  size_t length)
 {
 	// Figure out the type of WebSocket event
 	switch (type)
@@ -381,8 +381,8 @@ void onWebSocketEvent(uint8_t client_num,
 }
 
 void handleRequest(AsyncWebServerRequest *request,
-									 const char *file_name,
-									 const char *content_type)
+				   const char *file_name,
+				   const char *content_type)
 {
 	IPAddress remote_ip = request->client()->remoteIP();
 	log_i("HTTP GET request of %s from %s", request->url().c_str(), remote_ip.toString().c_str());
@@ -568,22 +568,22 @@ void setup_tasks()
 {
 	log_i("starting pid task");
 	xTaskCreatePinnedToCore(
-			pid_task,				 /* Function to implement the task */
-			"pid_task",			 /* Name of the task */
-			3000,						 /* Stack size in words */
-			NULL,						 /* Task input parameter */
-			3,							 /* Priority of the task from 0 to 25, higher number = higher priority */
-			&PidTaskHandle1, /* Task handle. */
-			1);							 /* Core where the task should run */
+		pid_task,		 /* Function to implement the task */
+		"pid_task",		 /* Name of the task */
+		3000,			 /* Stack size in words */
+		NULL,			 /* Task input parameter */
+		3,				 /* Priority of the task from 0 to 25, higher number = higher priority */
+		&PidTaskHandle1, /* Task handle. */
+		1);				 /* Core where the task should run */
 	log_i("starting pid task");
 	xTaskCreatePinnedToCore(
-			pid_task2,			 /* Function to implement the task */
-			"pid_task2",		 /* Name of the task */
-			3000,						 /* Stack size in words */
-			NULL,						 /* Task input parameter */
-			3,							 /* Priority of the task from 0 to 25, higher number = higher priority */
-			&PidTaskHandle2, /* Task handle. */
-			0);
+		pid_task2,		 /* Function to implement the task */
+		"pid_task2",	 /* Name of the task */
+		3000,			 /* Stack size in words */
+		NULL,			 /* Task input parameter */
+		3,				 /* Priority of the task from 0 to 25, higher number = higher priority */
+		&PidTaskHandle2, /* Task handle. */
+		0);
 }
 
 void setup()
@@ -599,16 +599,16 @@ void setup()
 	pinMode(PIN_PID_LOOP_2, OUTPUT);
 	pinMode(PIN_LIMIT_SW, INPUT);
 
-	ESP32Encoder::useInternalWeakPullResistors = UP;	 // Enable the weak pull up resistors
-	encoder1.attachFullQuad(PIN_ENC_A, PIN_ENC_B);		 // Attache pins for use as encoder pins
+	ESP32Encoder::useInternalWeakPullResistors = UP;   // Enable the weak pull up resistors
+	encoder1.attachFullQuad(PIN_ENC_A, PIN_ENC_B);	   // Attache pins for use as encoder pins
 	encoder2.attachFullQuad(PIN_ENC_A_2, PIN_ENC_B_2); // Attache pins for use as encoder pins
 	encoder1.clearCount();
 	encoder2.clearCount();
 
 	hBridge1.begin(PIN_HBRIDGE_PWM, PIN_HBRIDGE_INA, PIN_HBRIDGE_INB,
-								 PWM_FREQ_HZ, PWM_RES_BITS, PWM_CH, PID_MAX_CTRL_VALUE);
+				   PWM_FREQ_HZ, PWM_RES_BITS, PWM_CH, PID_MAX_CTRL_VALUE);
 	hBridge2.begin(PIN_HBRIDGE_PWM2, PIN_HBRIDGE_INA2, PIN_HBRIDGE_INB2,
-								 PWM_FREQ_HZ, PWM_RES_BITS, PWM_CH, PID_MAX_CTRL_VALUE);
+				   PWM_FREQ_HZ, PWM_RES_BITS, PWM_CH, PID_MAX_CTRL_VALUE);
 
 	pid_pos_1.set_kp(10.0); // 12
 	pid_pos_1.set_ki(2.0);
@@ -635,8 +635,8 @@ void loop()
 	WebSocket.loop();
 
 	Serial.printf(
-			"req_pos_1: %.2f  req_pos_2: %.2f  \ncurr_pos_1: %.2f  curr_pos_2: %.2f  \nctrl_pos_1: %.2f  ctrl_pos_2: %.2f  \nreq_vel: %.2f  curr_vel_1: %.2f ctrl_vel: %.2f\n\r",
-			req_pos_1, req_pos_2, (double)current_pos1, (double)current_pos2, ctrl_pos_1, ctrl_pos_2, req_vel, current_vel1, ctrl_vel);
+		"req_pos_1: %.2f  req_pos_2: %.2f  \ncurr_pos_1: %.2f  curr_pos_2: %.2f  \nctrl_pos_1: %.2f  ctrl_pos_2: %.2f  \nreq_vel: %.2f  curr_vel_1: %.2f ctrl_vel: %.2f\n\r",
+		req_pos_1, req_pos_2, (double)current_pos1, (double)current_pos2, ctrl_pos_1, ctrl_pos_2, req_vel, current_vel1, ctrl_vel);
 	Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", pid_pos_1.get_kp(), pid_pos_1.get_ki(), pid_pos_1.get_kd(), pid_pos_1.get_error());
 	Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", pid_pos_2.get_kp(), pid_pos_2.get_ki(), pid_pos_2.get_kd(), pid_pos_2.get_error());
 	Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", pid_vel.get_kp(), pid_vel.get_ki(), pid_vel.get_kd(), pid_vel.get_error());
