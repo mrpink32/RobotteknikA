@@ -68,7 +68,8 @@ volatile double max_vel = 300;
 
 double ctrl_pos_1;
 double ctrl_pos_2;
-double ctrl_vel;
+double ctrl_vel1;
+double ctrl_vel2;
 
 bool mode_pos = true;
 
@@ -80,6 +81,51 @@ int32_t SliderVal = 0;
 double KpVal = 10;
 double KiVal = 2;
 double KdVal = 0.0;
+
+class Motor
+{
+private:
+	ESP32Encoder encoder;
+	H_Bridge h_bridge;
+	Pid pid_pos;
+	Pid pid_vel;
+	double req_pos;
+	double req_vel;
+	int64_t current_pos;
+	double current_vel;
+
+	double ctrl_pos;
+	double ctrl_vel;
+
+	bool mode_pos = true;
+	double max_vel = 300;
+
+public:
+	Motor(int aPintNumber, int bPinNumber);
+	~Motor();
+};
+
+Motor::Motor(int aPintNumber, int bPinNumber)
+{
+	pid_pos = Pid(DT_S, PID_MAX_CTRL_VALUE);
+	pid_vel = Pid(DT_S, PID_MAX_VEL_VALUE);
+
+	encoder.attachFullQuad(aPintNumber, bPinNumber);
+	encoder.clearCount();
+	h_bridge.begin(PIN_HBRIDGE_PWM, PIN_HBRIDGE_INA, PIN_HBRIDGE_INB,
+				   PWM_FREQ_HZ, PWM_RES_BITS, PWM_CH, PID_MAX_CTRL_VALUE);
+	pid_pos.set_kp(10.0); // 12
+	pid_pos.set_ki(2.0);
+	pid_pos.set_kd(0.000);
+
+	pid_vel.set_kp(0);
+	pid_vel.set_ki(12);
+	pid_vel.set_kd(0);
+}
+
+Motor::~Motor()
+{
+}
 
 /***********************************************************
  * Functions
@@ -526,45 +572,6 @@ void pid_task2(void *arg)
 	}
 }
 
-// void wait_move()
-// {
-// 	while (abs(req_pos - current_pos1) > 10)
-// 	{
-// 		vTaskDelay(1);
-// 	}
-// 	// while (abs(req_pos - current_pos2) > 10)
-// 	// {
-// 	// 	vTaskDelay(1);
-// 	// }
-// }
-
-// void home()
-// {
-// 	log_i("home initiated...");
-// 	req_vel = 40000;
-// 	mode_pos = false;
-
-// 	while (digitalRead(PIN_LIMIT_SW))
-// 	{
-// 		vTaskDelay(1);
-// 	}
-// 	req_vel = -1000;
-// 	while (!digitalRead(PIN_LIMIT_SW))
-// 	{
-// 		vTaskDelay(1);
-// 	}
-// 	req_vel = 0;
-
-// 	mode_pos = true;
-// 	req_pos_1 = 0;
-// 	req_pos_2 = 0;
-// 	encoder1.setCount(0);
-// 	encoder2.setCount(0);
-// 	wait_move();
-// 	log_i("vel: %f, pos: %f", req_vel, req_pos);
-// 	log_i("home complete.");
-// }
-
 void setup_tasks()
 {
 	log_i("starting pid task");
@@ -600,6 +607,9 @@ void setup()
 	pinMode(PIN_PID_LOOP_2, OUTPUT);
 	pinMode(PIN_LIMIT_SW, INPUT);
 
+	// Motor motor1 = Motor(PIN_ENC_A, PIN_ENC_B);
+	// Motor motor2 = Motor(PIN_ENC_A_2, PIN_ENC_B_2);
+
 	ESP32Encoder::useInternalWeakPullResistors = UP;   // Enable the weak pull up resistors
 	encoder1.attachFullQuad(PIN_ENC_A, PIN_ENC_B);	   // Attache pins for use as encoder pins
 	encoder2.attachFullQuad(PIN_ENC_A_2, PIN_ENC_B_2); // Attache pins for use as encoder pins
@@ -630,8 +640,6 @@ void setup()
 	setup_spiffs();
 	setup_network();
 	setup_tasks();
-	encoder1.clearCount();
-	encoder1.clearCount();
 }
 
 void loop()
