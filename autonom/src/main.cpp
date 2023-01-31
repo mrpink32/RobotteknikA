@@ -47,7 +47,7 @@ TaskHandle_t PidTaskHandle1;
 TaskHandle_t PidTaskHandle2;
 ESP32Encoder encoder1;
 ESP32Encoder encoder2;
-Pid pid_vel1(DT_S, PID_MAX_CTRL_VALUE);
+Pid pid_vel1(DT_S, PID_MAX_VEL_VALUE);
 Pid pid_vel2(DT_S, PID_MAX_VEL_VALUE);
 Pid pid_pos_1(DT_S, PID_MAX_CTRL_VALUE);
 Pid pid_pos_2(DT_S, PID_MAX_CTRL_VALUE);
