@@ -78,8 +78,8 @@ WebSocketsServer WebSocket = WebSocketsServer(ws_port);
 char MsgBuf[32];
 int32_t LedState = 0;
 int32_t SliderVal = 0;
-double KpVal = 10;
-double KiVal = 2;
+double KpVal = 10.0;
+double KiVal = 2.0;
 double KdVal = 0.0;
 
 // class Motor
