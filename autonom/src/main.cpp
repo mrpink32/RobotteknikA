@@ -627,11 +627,11 @@ void setup()
 	pid_pos_2.set_ki(2.0);
 	pid_pos_2.set_kd(0.000);
 
-	pid_vel1.set_kp(0);
+	pid_vel1.set_kp(10);
 	pid_vel1.set_ki(12);
 	pid_vel1.set_kd(0);
 
-	pid_vel2.set_kp(0);
+	pid_vel2.set_kp(10);
 	pid_vel2.set_ki(12);
 	pid_vel2.set_kd(0);
 
