@@ -528,7 +528,7 @@ void pid_task(void *arg)
 		{
 			pid_pos_1.update(req_pos_1, current_pos1, &ctrl_pos_1, integration_threshold);
 
-			req_vel1 = constrain(ctrl_pos_1, -max_vel, max_vel);
+			// req_vel1 = constrain(ctrl_pos_1, -max_vel, max_vel);
 		}
 
 		pid_vel1.update(req_vel1, current_vel1, &ctrl_vel1, 100000);
@@ -557,7 +557,7 @@ void pid_task2(void *arg)
 		{
 			pid_pos_2.update(req_pos_2, current_pos2, &ctrl_pos_2, integration_threshold);
 
-			req_vel2 = constrain(ctrl_pos_2, -max_vel, max_vel);
+			// req_vel2 = constrain(ctrl_pos_2, -max_vel, max_vel);
 		}
 
 		pid_vel2.update(req_vel2, current_vel2, &ctrl_vel2, 100000);
