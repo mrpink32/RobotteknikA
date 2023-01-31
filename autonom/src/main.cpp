@@ -47,7 +47,8 @@ TaskHandle_t PidTaskHandle1;
 TaskHandle_t PidTaskHandle2;
 ESP32Encoder encoder1;
 ESP32Encoder encoder2;
-Pid pid_vel(DT_S, PID_MAX_CTRL_VALUE);
+Pid pid_vel1(DT_S, PID_MAX_CTRL_VALUE);
+Pid pid_vel2(DT_S, PID_MAX_VEL_VALUE);
 Pid pid_pos_1(DT_S, PID_MAX_CTRL_VALUE);
 Pid pid_pos_2(DT_S, PID_MAX_CTRL_VALUE);
 H_Bridge hBridge1;
@@ -57,8 +58,8 @@ const double integration_threshold = 200;
 
 volatile double req_pos_1;
 volatile double req_pos_2;
-volatile double req_vel;
-// volatile double req_vel;
+volatile double req_vel1;
+volatile double req_vel2;
 volatile int64_t current_pos1;
 volatile int64_t current_pos2;
 volatile double current_vel1;
@@ -483,10 +484,10 @@ void pid_task(void *arg)
 		{
 			pid_pos_1.update(req_pos_1, current_pos1, &ctrl_pos_1, integration_threshold);
 
-			req_vel = constrain(ctrl_pos_1, -max_vel, max_vel);
+			req_vel1 = constrain(ctrl_pos_1, -max_vel, max_vel);
 		}
 
-		pid_vel.update(req_vel, current_vel1, &ctrl_vel, 100000);
+		pid_vel1.update(req_vel1, current_vel1, &ctrl_vel, 100000);
 
 		hBridge1.set_pwm(ctrl_vel);
 
@@ -512,10 +513,10 @@ void pid_task2(void *arg)
 		{
 			pid_pos_2.update(req_pos_2, current_pos2, &ctrl_pos_2, integration_threshold);
 
-			req_vel = constrain(ctrl_pos_2, -max_vel, max_vel);
+			req_vel2 = constrain(ctrl_pos_2, -max_vel, max_vel);
 		}
 
-		pid_vel.update(req_vel, current_vel1, &ctrl_vel, 100000);
+		pid_vel2.update(req_vel2, current_vel2, &ctrl_vel, 100000);
 
 		hBridge2.set_pwm(ctrl_vel);
 
@@ -618,9 +619,13 @@ void setup()
 	pid_pos_2.set_ki(2.0);
 	pid_pos_2.set_kd(0.000);
 
-	pid_vel.set_kp(0);
-	pid_vel.set_ki(12);
-	pid_vel.set_kd(0);
+	pid_vel1.set_kp(0);
+	pid_vel1.set_ki(12);
+	pid_vel1.set_kd(0);
+
+	pid_vel2.set_kp(0);
+	pid_vel2.set_ki(12);
+	pid_vel2.set_kd(0);
 
 	setup_spiffs();
 	setup_network();
@@ -635,11 +640,12 @@ void loop()
 	WebSocket.loop();
 
 	Serial.printf(
-		"req_pos_1: %.2f  req_pos_2: %.2f  \ncurr_pos_1: %.2f  curr_pos_2: %.2f  \nctrl_pos_1: %.2f  ctrl_pos_2: %.2f  \nreq_vel: %.2f  curr_vel_1: %.2f ctrl_vel: %.2f\n\r",
-		req_pos_1, req_pos_2, (double)current_pos1, (double)current_pos2, ctrl_pos_1, ctrl_pos_2, req_vel, current_vel1, ctrl_vel);
+		"req_pos_1: %.2f  req_pos_2: %.2f  \ncurr_pos_1: %.2f  curr_pos_2: %.2f  \nctrl_pos_1: %.2f  ctrl_pos_2: %.2f  \nreq_vel_1: %.2f  req_vel_2: %.2f  curr_vel_1: %.2f ctrl_vel: %.2f\n\r",
+		req_pos_1, req_pos_2, (double)current_pos1, (double)current_pos2, ctrl_pos_1, ctrl_pos_2, req_vel1, req_vel2, current_vel1, ctrl_vel);
 	Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", pid_pos_1.get_kp(), pid_pos_1.get_ki(), pid_pos_1.get_kd(), pid_pos_1.get_error());
 	Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", pid_pos_2.get_kp(), pid_pos_2.get_ki(), pid_pos_2.get_kd(), pid_pos_2.get_error());
-	Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", pid_vel.get_kp(), pid_vel.get_ki(), pid_vel.get_kd(), pid_vel.get_error());
+	Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", pid_vel1.get_kp(), pid_vel1.get_ki(), pid_vel1.get_kd(), pid_vel1.get_error());
+	Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", pid_vel2.get_kp(), pid_vel2.get_ki(), pid_vel2.get_kd(), pid_vel2.get_error());
 	// delay(10);
 
 	vTaskDelay(0.2 * configTICK_RATE_HZ);
