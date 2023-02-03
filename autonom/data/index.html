@@ -134,7 +134,7 @@
             inp_slider.value = 0.001;
 
             txa_req_pos = document.getElementById("txa_req_pos");
-            // txa_req_pos.innerHTML = "0";
+            txa_req_pos.innerHTML = "0,0";
             btn_req_pos = document.getElementById("btn_req_pos");
             btn_req_pos.disabled = false;
             btn_req_pos.onclick = function (evt) { console.log(evt); onclick_btn_req_pos(); }
@@ -398,12 +398,6 @@
             <td><textarea id="txa_req_vel"></textarea></td>
         </tr>
     </table>
-
-    <footer class="w3-container w3-teal">
-        <h5>Robot teknik er:</h5>
-        <p>awesome...</p>
-    </footer>
-
 </body>
 
 </html>
