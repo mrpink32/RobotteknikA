@@ -531,7 +531,7 @@ void pid_task(void *arg)
 			req_vel1 = constrain(ctrl_pos_1, -max_vel, max_vel);
 		}
 
-		pid_vel1.update(req_vel1, current_vel1, &ctrl_vel1, 100000);
+		pid_vel1.update(req_vel1, current_vel1, &ctrl_vel1, integration_threshold);
 
 		hBridge1.set_pwm(ctrl_vel1);
 
@@ -560,7 +560,7 @@ void pid_task2(void *arg)
 			req_vel2 = constrain(ctrl_pos_2, -max_vel, max_vel);
 		}
 
-		pid_vel2.update(req_vel2, current_vel2, &ctrl_vel2, 100000);
+		pid_vel2.update(req_vel2, current_vel2, &ctrl_vel2, integration_threshold);
 
 		hBridge2.set_pwm(ctrl_vel2);
 
