@@ -32,5 +32,4 @@ const double DT_S = 0.01; // loop time in seconds
 const double MIN_CTRL_VALUE = -100;
 const double MAX_CTRL_VALUE = 100;
 const double PID_MAX_CTRL_VALUE = 10000;
-const double PID_MAX_POS_VALUE = 10000;
 const double PID_MAX_VEL_VALUE = 10000;

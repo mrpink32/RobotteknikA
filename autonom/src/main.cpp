@@ -47,10 +47,10 @@ TaskHandle_t PidTaskHandle1;
 TaskHandle_t PidTaskHandle2;
 ESP32Encoder encoder1;
 ESP32Encoder encoder2;
-Pid pid_vel1(DT_S, PID_MAX_VEL_VALUE);
-Pid pid_vel2(DT_S, PID_MAX_VEL_VALUE);
 Pid pid_pos_1(DT_S, PID_MAX_CTRL_VALUE);
 Pid pid_pos_2(DT_S, PID_MAX_CTRL_VALUE);
+Pid pid_vel1(DT_S, PID_MAX_VEL_VALUE);
+Pid pid_vel2(DT_S, PID_MAX_VEL_VALUE);
 H_Bridge hBridge1;
 H_Bridge hBridge2;
 
@@ -78,8 +78,8 @@ WebSocketsServer WebSocket = WebSocketsServer(ws_port);
 char MsgBuf[32];
 int32_t LedState = 0;
 int32_t SliderVal = 0;
-double KpVal = 10.0;
-double KiVal = 2.0;
+double KpVal = 0.0;
+double KiVal = 0.0;
 double KdVal = 0.0;
 
 // class Motor
@@ -317,6 +317,7 @@ void handle_kx(char *command, uint8_t client_num)
 	{
 	case 'p':
 		parm_value = &KpVal;
+		Serial.printf("parm_value: %f", parm_value);
 		pid_pos_1.set_kp(*parm_value);
 		pid_pos_2.set_kp(*parm_value);
 		break;
@@ -603,7 +604,7 @@ void setup()
 
 	pinMode(PIN_PID_LOOP, OUTPUT);
 	pinMode(PIN_PID_LOOP_2, OUTPUT);
-	pinMode(PIN_LIMIT_SW, INPUT);
+	// pinMode(PIN_LIMIT_SW, INPUT);
 
 	// Motor motor1 = Motor(PIN_ENC_A, PIN_ENC_B);
 	// Motor motor2 = Motor(PIN_ENC_A_2, PIN_ENC_B_2);
