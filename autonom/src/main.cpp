@@ -78,9 +78,6 @@ WebSocketsServer WebSocket = WebSocketsServer(ws_port);
 char MsgBuf[32];
 int32_t LedState = 0;
 int32_t SliderVal = 0;
-double KpVal = 0.0;
-double KiVal = 0.0;
-double KdVal = 0.0;
 
 // class Motor
 // {
@@ -312,22 +309,24 @@ void handle_kx(char *command, uint8_t client_num)
 	char subtype = *(value - 1);
 
 	double *parm_value;
-
+	errno = 0;
+	char *e;
+	double result = strtol(value + 1, &e, 10);
 	switch (subtype)
 	{
 	case 'p':
-		parm_value = &KpVal;
+		parm_value = &result;
 		Serial.printf("parm_value: %f", parm_value);
 		pid_pos_1.set_kp(*parm_value);
 		pid_pos_2.set_kp(*parm_value);
 		break;
 	case 'i':
-		parm_value = &KiVal;
+		parm_value = &result;
 		pid_pos_1.set_ki(*parm_value);
 		pid_pos_2.set_ki(*parm_value);
 		break;
 	case 'd':
-		parm_value = &KdVal;
+		parm_value = &result;
 		pid_pos_1.set_kd(*parm_value);
 		pid_pos_2.set_kd(*parm_value);
 		break;
