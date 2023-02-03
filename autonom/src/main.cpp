@@ -41,7 +41,6 @@ const int32_t wifi_channel = 9; // alle grupper skal have hver sin kanal
 const int32_t dns_port = 53;
 const int32_t http_port = 80;
 const int32_t ws_port = 1337;
-const int32_t led_pin = 17;
 
 TaskHandle_t PidTaskHandle1;
 TaskHandle_t PidTaskHandle2;
@@ -143,7 +142,7 @@ void handle_toggle(int32_t client_num)
 {
 	LedState = LedState ? 0 : 1;
 	log_i("Toggling LED to %u", LedState);
-	digitalWrite(led_pin, LedState);
+	digitalWrite(LED_PIN, LedState);
 	sprintf(MsgBuf, "%d", LedState);
 	web_socket_send(MsgBuf, client_num, true);
 }
@@ -316,7 +315,6 @@ void handle_kx(char *command, uint8_t client_num)
 	{
 	case 'p':
 		parm_value = &result;
-		Serial.printf("parm_value: %f", parm_value);
 		pid_pos_1.set_kp(*parm_value);
 		pid_pos_2.set_kp(*parm_value);
 		break;
@@ -595,8 +593,8 @@ void setup_tasks()
 void setup()
 {
 	// Init LED and turn off
-	pinMode(led_pin, OUTPUT);
-	digitalWrite(led_pin, LOW);
+	pinMode(LED_PIN, OUTPUT);
+	digitalWrite(LED_PIN, LOW);
 
 	// Start Serial port
 	Serial.begin(115200);

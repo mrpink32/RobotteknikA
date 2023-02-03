@@ -74,7 +74,7 @@
         const Cmd_Slider = "sli";
         const Cmd_Pos = "req_pos";
         const Cmd_Vel = "req_vel";
-        
+
 
         // system vars
         var btn_onoff;          // Toggle button to turn the robot on and off
@@ -134,7 +134,7 @@
             inp_slider.value = 0.001;
 
             txa_req_pos = document.getElementById("txa_req_pos");
-            txa_req_pos.innerHTML = "0";
+            // txa_req_pos.innerHTML = "0";
             btn_req_pos = document.getElementById("btn_req_pos");
             btn_req_pos.disabled = false;
             btn_req_pos.onclick = function (evt) { console.log(evt); onclick_btn_req_pos(); }
@@ -164,7 +164,7 @@
             ctx_onoff.strokeStyle = "black";
             ctx_onoff.stroke();
             turn_off();
-            
+
             // Connect to WebSocket server
             url = get_url();
             wsConnect(url);
@@ -269,7 +269,7 @@
             inp_slider.disabled = true;
             btn_req_pos.disabled = true;
             btn_req_vel.disabled = true;
-            
+
 
             // Try to reconnect after a few seconds
             setTimeout(function () { url = get_url(); wsConnect(url) }, 2000);
@@ -326,11 +326,11 @@
                     txa_kx["kd"].value = value;
                     break;
                 case "req_pos":
-                console.log(`pos value received: ${value}`);
+                    console.log(`pos value received: ${value}`);
                     txa_req_pos.innerHTML = value;
                     break;
                 case "req_vel":
-                console.log(`vel value received: ${value}`);
+                    console.log(`vel value received: ${value}`);
                     txa_req_vel.innerHTML = value;
                     break;
                 default:
