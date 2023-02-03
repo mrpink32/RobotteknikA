@@ -15,6 +15,7 @@
 #include <SPIFFS.h>
 #include <ESPAsyncWebServer.h>
 #include <WebSocketsServer.h>
+#include <math.h>
 
 /* comment out for router connection */
 #define SOFT_AP
@@ -44,6 +45,7 @@ const int32_t ws_port = 1337;
 
 TaskHandle_t PidTaskHandle1;
 TaskHandle_t PidTaskHandle2;
+TaskHandle_t PositionTaskHandle;
 ESP32Encoder encoder1;
 ESP32Encoder encoder2;
 Pid pid_pos_1(DT_S, PID_MAX_CTRL_VALUE);
@@ -55,8 +57,10 @@ H_Bridge hBridge2;
 
 const double integration_threshold = 200;
 
-volatile double req_pos_1;
-volatile double req_pos_2;
+volatile double req_posx;
+volatile double req_posy;
+volatile double dest_posx;
+volatile double dest_posy;
 volatile double req_vel1;
 volatile double req_vel2;
 volatile int64_t current_pos1;
@@ -67,6 +71,9 @@ volatile double max_vel = 300;
 volatile double device_x = 0;
 volatile double device_y = 0;
 volatile double device_rotation = 0;
+volatile double needed_rotation = 0;
+const double b = 24.5;
+const double r = 5.05;
 
 double ctrl_pos_1;
 double ctrl_pos_2;
@@ -218,10 +225,10 @@ void handle_slider(char *command, uint8_t client_num)
 	}
 }
 
-void set_pos(int32_t pos)
+void set_pos(double posx, double posy)
 {
-	req_pos_1 = pos;
-	req_pos_2 = pos;
+	req_posx = posx;
+	req_posy = posy;
 }
 
 void handle_pos_req(char *command, uint8_t client_num)
@@ -527,7 +534,7 @@ void pid_task(void *arg)
 
 		if (mode_pos)
 		{
-			pid_pos_1.update(req_pos_1, current_pos1, &ctrl_pos_1, integration_threshold);
+			pid_pos_1.update(req_posx, current_pos1, &ctrl_pos_1, integration_threshold);
 
 			req_vel1 = constrain(ctrl_pos_1, -max_vel, max_vel);
 		}
@@ -556,7 +563,7 @@ void pid_task2(void *arg)
 
 		if (mode_pos)
 		{
-			pid_pos_2.update(req_pos_2, current_pos2, &ctrl_pos_2, integration_threshold);
+			pid_pos_2.update(req_posy, current_pos2, &ctrl_pos_2, integration_threshold);
 
 			req_vel2 = constrain(ctrl_pos_2, -max_vel, max_vel);
 		}
@@ -569,6 +576,41 @@ void pid_task2(void *arg)
 		digitalWrite(PIN_PID_LOOP_2, LOW);
 		vTaskDelayUntil(&xLastWakeTime, xTimeIncrement);
 	}
+}
+
+void position_task(void *arg)
+{
+	int64_t prev_pos1 = encoder1.getCount();
+	int64_t prev_pos2 = encoder2.getCount();
+	vTaskDelay(100/portTICK_PERIOD_MS);
+	double_t L1 = encoder1.getCount()-prev_pos1;
+	double_t L2 = encoder2.getCount()-prev_pos2;
+	device_x += (cos(device_rotation+(L2-L1)/b)-cos(device_rotation))*b*(L1+L2)/(2*(L2-L1));
+    device_y += (sin(device_rotation+(L2-L1)/b)-sin(device_rotation))*b*(L1+L2)/(2*(L2-L1));
+    device_rotation += (L2-L1)/b;
+	needed_rotation = atan((dest_posx - device_x)/(dest_posy - device_y))+M_PI/2-(M_PI*abs(dest_posx-device_x))/(2*(dest_posx-device_x));
+    double_t v = (device_rotation - needed_rotation)/(2 * M_PI);
+	while(v >= 1)
+	{
+		v -= 1;
+	}
+	while(v < 0)
+	{
+		v += 1;
+	}
+    if(min(v,1-v) < 0.05)
+	{
+		set_pos(encoder1.getCount()+sqrt(pow(device_x-dest_posx,2)+pow(device_y-dest_posy,2)), encoder2.getCount()+sqrt(pow(device_x-dest_posx,2)+pow(device_y-dest_posy,2)));
+	}
+    else if(v < 0.5)
+	{
+		set_pos(encoder1.getCount()+v*M_PI*b,encoder2.getCount()-v*M_PI*b);
+	}
+    else
+	{
+		set_pos(encoder1.getCount()+(M_PI-v)*M_PI*b,encoder2.getCount()-(M_PI-v)*M_PI*b);
+	}
+
 }
 
 void setup_tasks()
@@ -590,6 +632,15 @@ void setup_tasks()
 		NULL,			 /* Task input parameter */
 		3,				 /* Priority of the task from 0 to 25, higher number = higher priority */
 		&PidTaskHandle2, /* Task handle. */
+		1);
+	log_i("starting pid task");
+	xTaskCreatePinnedToCore(
+		position_task,		 /* Function to implement the task */
+		"position_task",	 /* Name of the task */
+		3000,			 /* Stack size in words */
+		NULL,			 /* Task input parameter */
+		3,				 /* Priority of the task from 0 to 25, higher number = higher priority */
+		&PositionTaskHandle, /* Task handle. */
 		0);
 }
 
@@ -647,7 +698,7 @@ void loop()
 	WebSocket.loop();
 	Serial.printf(
 		"req_pos_1: %.2f  req_pos_2: %.2f  \ncurr_pos_1: %.2f  curr_pos_2: %.2f  \nctrl_pos_1: %.2f  ctrl_pos_2: %.2f  \nreq_vel_1: %.2f  req_vel_2: %.2f  curr_vel_1: %.2f curr_vel_2: %.2f ctrl_vel_1: %.2f ctrl_vel_2: %.2f\n\r",
-		req_pos_1, req_pos_2, (double)current_pos1, (double)current_pos2, ctrl_pos_1, ctrl_pos_2, req_vel1, req_vel2, current_vel1, current_vel2, ctrl_vel1, ctrl_vel2);
+		req_posx, req_posy, (double)current_pos1, (double)current_pos2, ctrl_pos_1, ctrl_pos_2, req_vel1, req_vel2, current_vel1, current_vel2, ctrl_vel1, ctrl_vel2);
 	Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", pid_pos_1.get_kp(), pid_pos_1.get_ki(), pid_pos_1.get_kd(), pid_pos_1.get_error());
 	Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", pid_pos_2.get_kp(), pid_pos_2.get_ki(), pid_pos_2.get_kd(), pid_pos_2.get_error());
 	Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", pid_vel1.get_kp(), pid_vel1.get_ki(), pid_vel1.get_kd(), pid_vel1.get_error());
