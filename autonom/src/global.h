@@ -21,7 +21,8 @@ const int32_t PIN_HBRIDGE_PWM2 = 0; // hbridhe PWM pin
 const int32_t PIN_LIMIT_SW = 24;
 
 // PWM SETUP
-const int32_t PWM_CH = 0;                         // 0 - 7(15?)  = 8(16?) channels
+const int32_t PWM_CH1 = 0;                        // 0 - 7(15?)  = 8(16?) channels
+const int32_t PWM_CH2 = 1;                        // 0 - 7(15?)  = 8(16?) channels
 const int32_t PWM_FREQ_HZ = 19500;                // 1Hz to 40MHz
 const int32_t PWM_RES_BITS = 12;                  // 1 to 16(20) bits
 const int32_t PWM_MIN = 0;                        // minimum pwm value
