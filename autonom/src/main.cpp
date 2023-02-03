@@ -16,6 +16,7 @@
 #include <ESPAsyncWebServer.h>
 #include <WebSocketsServer.h>
 #include <math.h>
+#include <string.h>
 
 /* comment out for router connection */
 #define SOFT_AP
@@ -231,6 +232,12 @@ void set_pos(double posx, double posy)
 	req_posy = posy;
 }
 
+void setDestination(double posx, double posy)
+{
+	dest_posx = posx;
+	dest_posy = posy;
+}
+
 void handle_pos_req(char *command, uint8_t client_num)
 {
 	char *value = strstr(command, ":");
@@ -248,13 +255,16 @@ void handle_pos_req(char *command, uint8_t client_num)
 	}
 	else
 	{
-		errno = 0;
 		char *e;
-		double result = strtol(value + 1, &e, 10);
-		Serial.println(result);
+		// result1 = value.s;
+		std::string val = value;
+		std::string command = command;
+		std::string result1 = command.substr(val.size(), command.find(","));
+		std::string result2 = command.substr(command.find(","), command.size());
+		Serial.printf("%s, %s\n", result1, result2);
 		if (*e == '\0' && 0 == errno) // no error
 		{
-			set_pos(result);
+			setDestination(0, 0);
 			sprintf(MsgBuf, "%s:%f", cmd_pos, encoder1.getCount());
 			web_socket_send(MsgBuf, client_num, true);
 		}
@@ -582,35 +592,34 @@ void position_task(void *arg)
 {
 	int64_t prev_pos1 = encoder1.getCount();
 	int64_t prev_pos2 = encoder2.getCount();
-	vTaskDelay(100/portTICK_PERIOD_MS);
-	double_t L1 = encoder1.getCount()-prev_pos1;
-	double_t L2 = encoder2.getCount()-prev_pos2;
-	device_x += (cos(device_rotation+(L2-L1)/b)-cos(device_rotation))*b*(L1+L2)/(2*(L2-L1));
-    device_y += (sin(device_rotation+(L2-L1)/b)-sin(device_rotation))*b*(L1+L2)/(2*(L2-L1));
-    device_rotation += (L2-L1)/b;
-	needed_rotation = atan((dest_posx - device_x)/(dest_posy - device_y))+M_PI/2-(M_PI*abs(dest_posx-device_x))/(2*(dest_posx-device_x));
-    double_t v = (device_rotation - needed_rotation)/(2 * M_PI);
-	while(v >= 1)
+	vTaskDelay(100 / portTICK_PERIOD_MS);
+	double_t L1 = ((encoder1.getCount() - prev_pos1) / 1920) * (r / 50) * M_PI;
+	double_t L2 = ((encoder2.getCount() - prev_pos2) / 1920) * (r / 50) * M_PI;
+	device_x += (cos(device_rotation + (L2 - L1) / b) - cos(device_rotation)) * b * (L1 + L2) / (2 * (L2 - L1));
+	device_y += (sin(device_rotation + (L2 - L1) / b) - sin(device_rotation)) * b * (L1 + L2) / (2 * (L2 - L1));
+	device_rotation += (L2 - L1) / b;
+	needed_rotation = atan((dest_posx - device_x) / (dest_posy - device_y)) + M_PI / 2 - (M_PI * abs(dest_posx - device_x)) / (2 * (dest_posx - device_x));
+	double_t v = (device_rotation - needed_rotation) / (2 * M_PI);
+	while (v >= 1)
 	{
 		v -= 1;
 	}
-	while(v < 0)
+	while (v < 0)
 	{
 		v += 1;
 	}
-    if(min(v,1-v) < 0.05)
+	if (min(v, 1 - v) < 0.05)
 	{
-		set_pos(encoder1.getCount()+sqrt(pow(device_x-dest_posx,2)+pow(device_y-dest_posy,2)), encoder2.getCount()+sqrt(pow(device_x-dest_posx,2)+pow(device_y-dest_posy,2)));
+		set_pos(encoder1.getCount() + (sqrt(pow(device_x - dest_posx, 2) + pow(device_y - dest_posy, 2)) * (50 / r * M_PI) * 1920), encoder2.getCount() + (sqrt(pow(device_x - dest_posx, 2) + pow(device_y - dest_posy, 2)) * (50 / r * M_PI) * 1920));
 	}
-    else if(v < 0.5)
+	else if (v < 0.5)
 	{
-		set_pos(encoder1.getCount()+v*M_PI*b,encoder2.getCount()-v*M_PI*b);
+		set_pos(encoder1.getCount() + v * b * (50 / r) * 1920, encoder2.getCount() - v * b * (50 / r) * 1920);
 	}
-    else
+	else
 	{
-		set_pos(encoder1.getCount()+(M_PI-v)*M_PI*b,encoder2.getCount()-(M_PI-v)*M_PI*b);
+		set_pos(encoder1.getCount() + (1 - v) * b * (50 / r) * 1920, encoder2.getCount() - (1 - v) * b * (50 / r) * 1920);
 	}
-
 }
 
 void setup_tasks()
@@ -637,9 +646,9 @@ void setup_tasks()
 	xTaskCreatePinnedToCore(
 		position_task,		 /* Function to implement the task */
 		"position_task",	 /* Name of the task */
-		3000,			 /* Stack size in words */
-		NULL,			 /* Task input parameter */
-		3,				 /* Priority of the task from 0 to 25, higher number = higher priority */
+		3000,				 /* Stack size in words */
+		NULL,				 /* Task input parameter */
+		3,					 /* Priority of the task from 0 to 25, higher number = higher priority */
 		&PositionTaskHandle, /* Task handle. */
 		0);
 }

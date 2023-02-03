@@ -121,17 +121,17 @@
             cvs_onoff.width = 50;
             cvs_onoff.height = 50;
 
-            par_led_intensity = document.getElementById("par_led_intensity");
-            par_led_intensity.innerHTML = "0";
+            // par_led_intensity = document.getElementById("par_led_intensity");
+            // par_led_intensity.innerHTML = "0";
 
-            inp_slider = document.getElementById("inp_slider");
-            inp_slider.type = "range";
-            inp_slider.classList.add("slider");    // instead of class="slider" in html tag
-            inp_slider.onchange = onchange_inp_slider;
-            inp_slider.step = 0.001;
-            inp_slider.min = 0;
-            inp_slider.max = 1;
-            inp_slider.value = 0.001;
+            // inp_slider = document.getElementById("inp_slider");
+            // inp_slider.type = "range";
+            // inp_slider.classList.add("slider");    // instead of class="slider" in html tag
+            // inp_slider.onchange = onchange_inp_slider;
+            // inp_slider.step = 0.001;
+            // inp_slider.min = 0;
+            // inp_slider.max = 1;
+            // inp_slider.value = 0.001;
 
             txa_req_pos = document.getElementById("txa_req_pos");
             txa_req_pos.innerHTML = "0,0";
@@ -151,7 +151,7 @@
                 let v = parameters[p] // important to use let
 
                 txa_kx[v] = document.getElementById(`txa_${v}`);
-                txa_kx[v].innerHTML = "0";
+                // txa_kx[v].innerHTML = "0";
                 btn_set_kx[v] = document.getElementById(`btn_set_${v}`);
                 btn_set_kx[v].disabled = false;
                 btn_set_kx[v].onclick = function (evt) { console.log(evt); onclick_btn_set_kx(v); }
@@ -371,12 +371,12 @@
             <td><button id="btn_onoff"></button></td>
             <td><canvas id="cvs_onoff"></canvas></td>
         </tr>
-        <tr>
+        <!-- <tr>
             <td>Intensity:<br><input id="inp_slider"></td>
             <td>
                 <p id="par_led_intensity"></p>
             </td>
-        </tr>
+        </tr> -->
         <tr>
             <td><button id="btn_set_kp">Set kp</button></td>
             <td><textarea id="txa_kp"></textarea></td>
@@ -391,7 +391,7 @@
         </tr>
         <tr>
             <td><button id="btn_req_pos">Request position</button></td>
-            <td><textarea id="txa_req_pos"></textarea></td>
+            <td><textarea id="txa_req_posx"></textarea></td>
         </tr>
         <tr>
             <td><button id="btn_req_vel">Request velocity</button></td>
