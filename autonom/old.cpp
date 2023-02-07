@@ -7,6 +7,7 @@
  * Date: 10. september 2020
  *
  */
+#include <Arduino.h>
 #include "pid.h"
 #include "global.h"
 #include "hbridge.h"
@@ -16,8 +17,7 @@
 #include <ESPAsyncWebServer.h>
 #include <WebSocketsServer.h>
 #include <math.h>
-#include <string>
-#include <Arduino.h>
+// #include <string>
 
 /* comment out for router connection */
 #define SOFT_AP
@@ -257,11 +257,12 @@ void handle_pos_req(char *command, uint8_t client_num)
 	else
 	{
 		char *e;
-		std::string val = value;
-		std::string command = command;
-		std::string result1 = command.substr(val.size(), command.find(","));
-		std::string result2 = command.substr(command.find(","), command.size());
-		Serial.printf("%s, %s\n", result1, result2);
+		// result1 = value.s;
+		// std::string val = value;
+		// std::string command = command;
+		// std::string result1 = command.substr(val.size(), command.find(","));
+		// std::string result2 = command.substr(command.find(","), command.size());
+		// Serial.printf("%s, %s\n", result1, result2);
 		if (*e == '\0' && 0 == errno) // no error
 		{
 			setDestination(0, 0);
@@ -590,52 +591,43 @@ void pid_task2(void *arg)
 
 void position_task(void *arg)
 {
-	try
+	int64_t prev_pos1 = encoder1.getCount();
+	int64_t prev_pos2 = encoder2.getCount();
+	vTaskDelay(100 / portTICK_PERIOD_MS);
+	double_t L1 = ((encoder1.getCount() - prev_pos1) / 1920) * (r / 50) * M_PI;
+	double_t L2 = ((encoder2.getCount() - prev_pos2) / 1920) * (r / 50) * M_PI;
+	if (L2 - L1 == 0)
 	{
-		int64_t prev_pos1 = encoder1.getCount();
-		int64_t prev_pos2 = encoder2.getCount();
-		vTaskDelay(200 / portTICK_PERIOD_MS);
-		double_t L1 = ((encoder1.getCount() - prev_pos1) / 1920) * (r / 50) * M_PI;
-		double_t L2 = ((encoder2.getCount() - prev_pos2) / 1920) * (r / 50) * M_PI;
-		if (L2 - L1 == 0)
-		{
-			device_x += L1 * cos(device_rotation);
-			device_y += L1 * sin(device_rotation);
-		}
-		else
-		{
-			device_x += (cos(device_rotation + (L2 - L1) / b) - cos(device_rotation)) * b * (L1 + L2) / (2 * (L2 - L1));
-			device_y += (sin(device_rotation + (L2 - L1) / b) - sin(device_rotation)) * b * (L1 + L2) / (2 * (L2 - L1));
-		}
-		device_rotation += (L2 - L1) / b;
-		needed_rotation = atan((dest_posx - device_x) / (dest_posy - device_y)) + M_PI / 2 - (M_PI * abs(dest_posx - device_x)) / (2 * (dest_posx - device_x));
-		double_t v = (device_rotation - needed_rotation) / (2 * M_PI);
-
-		if (v >= 1)
-		{
-			v -= 1;
-		}
-		if (v < 0)
-		{
-			v += 1;
-		}
-		if (min(v, 1 - v) < 0.05)
-		{
-			set_pos(encoder1.getCount() + (sqrt(pow(device_x - dest_posx, 2) + pow(device_y - dest_posy, 2)) * (50 / r * M_PI) * 1920), encoder2.getCount() + (sqrt(pow(device_x - dest_posx, 2) + pow(device_y - dest_posy, 2)) * (50 / r * M_PI) * 1920));
-		}
-		else if (v < 0.5)
-		{
-			set_pos(encoder1.getCount() + v * b * (50 / r) * 1920, encoder2.getCount() - v * b * (50 / r) * 1920);
-		}
-		else
-		{
-			set_pos(encoder1.getCount() + (1 - v) * b * (50 / r) * 1920, encoder2.getCount() - (1 - v) * b * (50 / r) * 1920);
-		}
+		device_x += L1 * cos(device_rotation);
+		device_y += L1 * sin(device_rotation);
 	}
-	catch (const std::exception &e)
+	else
 	{
-		Serial.println("test");
-		Serial.printf("Exception: %s\n", e.what());
+		device_x += (cos(device_rotation + (L2 - L1) / b) - cos(device_rotation)) * b * (L1 + L2) / (2 * (L2 - L1));
+		device_y += (sin(device_rotation + (L2 - L1) / b) - sin(device_rotation)) * b * (L1 + L2) / (2 * (L2 - L1));
+	}
+	device_rotation += (L2 - L1) / b;
+	needed_rotation = atan((dest_posx - device_x) / (dest_posy - device_y)) + M_PI / 2 - (M_PI * abs(dest_posx - device_x)) / (2 * (dest_posx - device_x));
+	double_t v = (device_rotation - needed_rotation) / (2 * M_PI);
+	while (v >= 1)
+	{
+		v -= 1;
+	}
+	while (v < 0)
+	{
+		v += 1;
+	}
+	if (min(v, 1 - v) < 0.05)
+	{
+		set_pos(encoder1.getCount() + (sqrt(pow(device_x - dest_posx, 2) + pow(device_y - dest_posy, 2)) * (50 / r * M_PI) * 1920), encoder2.getCount() + (sqrt(pow(device_x - dest_posx, 2) + pow(device_y - dest_posy, 2)) * (50 / r * M_PI) * 1920));
+	}
+	else if (v < 0.5)
+	{
+		set_pos(encoder1.getCount() + v * b * (50 / r) * 1920, encoder2.getCount() - v * b * (50 / r) * 1920);
+	}
+	else
+	{
+		set_pos(encoder1.getCount() + (1 - v) * b * (50 / r) * 1920, encoder2.getCount() - (1 - v) * b * (50 / r) * 1920);
 	}
 }
 
@@ -645,7 +637,7 @@ void setup_tasks()
 	xTaskCreatePinnedToCore(
 		pid_task,		 /* Function to implement the task */
 		"pid_task",		 /* Name of the task */
-		5000,			 /* Stack size in words */
+		3000,			 /* Stack size in words */
 		NULL,			 /* Task input parameter */
 		3,				 /* Priority of the task from 0 to 25, higher number = higher priority */
 		&PidTaskHandle1, /* Task handle. */
@@ -654,16 +646,16 @@ void setup_tasks()
 	xTaskCreatePinnedToCore(
 		pid_task2,		 /* Function to implement the task */
 		"pid_task2",	 /* Name of the task */
-		5000,			 /* Stack size in words */
+		3000,			 /* Stack size in words */
 		NULL,			 /* Task input parameter */
 		3,				 /* Priority of the task from 0 to 25, higher number = higher priority */
 		&PidTaskHandle2, /* Task handle. */
 		1);
-	log_i("starting motion task");
+	log_i("starting pid task");
 	xTaskCreatePinnedToCore(
 		position_task,		 /* Function to implement the task */
 		"position_task",	 /* Name of the task */
-		15000,				 /* Stack size in words */
+		3000,				 /* Stack size in words */
 		NULL,				 /* Task input parameter */
 		3,					 /* Priority of the task from 0 to 25, higher number = higher priority */
 		&PositionTaskHandle, /* Task handle. */
@@ -730,5 +722,5 @@ void loop()
 	Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", pid_vel1.get_kp(), pid_vel1.get_ki(), pid_vel1.get_kd(), pid_vel1.get_error());
 	Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", pid_vel2.get_kp(), pid_vel2.get_ki(), pid_vel2.get_kd(), pid_vel2.get_error());
 
-	vTaskDelay(0.5 * configTICK_RATE_HZ);
+	vTaskDelay(0.2 * configTICK_RATE_HZ);
 }
