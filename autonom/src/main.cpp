@@ -621,15 +621,18 @@ void position_task(void *arg)
 		}
 		if (min(v, 1 - v) < 0.05)
 		{
-			set_pos(encoder1.getCount() + (sqrt(pow(device_x - dest_posx, 2) + pow(device_y - dest_posy, 2)) * (50 / r * M_PI) * 1920), encoder2.getCount() + (sqrt(pow(device_x - dest_posx, 2) + pow(device_y - dest_posy, 2)) * (50 / r * M_PI) * 1920));
+			double_t l = sqrt(pow(device_x - dest_posx, 2) + pow(device_y - dest_posy, 2)) * (50 / r * M_PI) * 1920;
+			set_pos(encoder1.getCount() + l, encoder2.getCount() + l);
 		}
 		else if (v < 0.5)
 		{
-			set_pos(encoder1.getCount() + v * b * (50 / r) * 1920, encoder2.getCount() - v * b * (50 / r) * 1920);
+			l = v * b * (50 / r) * 1920;
+			set_pos(encoder1.getCount() + l, encoder2.getCount() - l);
 		}
 		else
 		{
-			set_pos(encoder1.getCount() + (1 - v) * b * (50 / r) * 1920, encoder2.getCount() - (1 - v) * b * (50 / r) * 1920);
+			l = (1 - v) * b * (50 / r) * 1920;
+			set_pos(encoder1.getCount() + l, encoder2.getCount() - l;
 		}
 	}
 	catch (const std::exception &e)
