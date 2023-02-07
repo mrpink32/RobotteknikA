@@ -595,8 +595,16 @@ void position_task(void *arg)
 	vTaskDelay(100 / portTICK_PERIOD_MS);
 	double_t L1 = ((encoder1.getCount() - prev_pos1) / 1920) * (r / 50) * M_PI;
 	double_t L2 = ((encoder2.getCount() - prev_pos2) / 1920) * (r / 50) * M_PI;
-	device_x += (cos(device_rotation + (L2 - L1) / b) - cos(device_rotation)) * b * (L1 + L2) / (2 * (L2 - L1));
-	device_y += (sin(device_rotation + (L2 - L1) / b) - sin(device_rotation)) * b * (L1 + L2) / (2 * (L2 - L1));
+	if(L2 - L1 == 0)
+	{
+		device_x += L1 * cos(device_rotation);
+		device_y += L1 * sin(device_rotation);
+	}
+	else
+	{
+		device_x += (cos(device_rotation + (L2 - L1) / b) - cos(device_rotation)) * b * (L1 + L2) / (2 * (L2 - L1));
+		device_y += (sin(device_rotation + (L2 - L1) / b) - sin(device_rotation)) * b * (L1 + L2) / (2 * (L2 - L1));
+	}
 	device_rotation += (L2 - L1) / b;
 	needed_rotation = atan((dest_posx - device_x) / (dest_posy - device_y)) + M_PI / 2 - (M_PI * abs(dest_posx - device_x)) / (2 * (dest_posx - device_x));
 	double_t v = (device_rotation - needed_rotation) / (2 * M_PI);
