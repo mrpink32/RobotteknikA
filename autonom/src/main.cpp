@@ -608,7 +608,7 @@ void position_task(void *arg)
 			device_y += (sin(device_rotation + (L2 - L1) / b) - sin(device_rotation)) * b * (L1 + L2) / (2 * (L2 - L1));
 		}
 		device_rotation += (L2 - L1) / b;
-		needed_rotation = atan((dest_posx - device_x) / (dest_posy - device_y)) + M_PI / 2 - (M_PI * abs(dest_posx - device_x)) / (2 * (dest_posx - device_x));
+		needed_rotation = atan2(dest_posx - device_x, dest_posy - device_y);
 		double_t v = (device_rotation - needed_rotation) / (2 * M_PI);
 
 		if (v >= 1)
