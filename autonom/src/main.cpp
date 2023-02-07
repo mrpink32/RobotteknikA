@@ -590,11 +590,11 @@ void pid_task2(void *arg)
 
 void position_task(void *arg)
 {
-	try
+	for (;;)
 	{
 		int64_t prev_pos1 = encoder1.getCount();
 		int64_t prev_pos2 = encoder2.getCount();
-		vTaskDelay(200 / portTICK_PERIOD_MS);
+		vTaskDelay(500 / portTICK_PERIOD_MS);
 		double_t L1 = ((encoder1.getCount() - prev_pos1) / 1920) * (r / 50) * M_PI;
 		double_t L2 = ((encoder2.getCount() - prev_pos2) / 1920) * (r / 50) * M_PI;
 		if (L2 - L1 == 0)
@@ -610,15 +610,15 @@ void position_task(void *arg)
 		device_rotation += (L2 - L1) / b;
 		needed_rotation = atan2(dest_posx - device_x, dest_posy - device_y);
 		double_t v = (device_rotation - needed_rotation) / (2 * M_PI);
-
 		if (v >= 1)
 		{
 			v -= 1;
 		}
-		if (v < 0)
+		else if (v < 0)
 		{
 			v += 1;
 		}
+		Serial.printf("v: %f, L1: %f, L2: %f", v, L1, L2);
 		if (min(v, 1 - v) < 0.05)
 		{
 			double_t l = sqrt(pow(device_x - dest_posx, 2) + pow(device_y - dest_posy, 2)) * (50 / r * M_PI) * 1920;
@@ -626,19 +626,14 @@ void position_task(void *arg)
 		}
 		else if (v < 0.5)
 		{
-			l = v * b * (50 / r) * 1920;
+			double_t l = v * b * (50 / r) * 1920;
 			set_pos(encoder1.getCount() + l, encoder2.getCount() - l);
 		}
 		else
 		{
-			l = (1 - v) * b * (50 / r) * 1920;
-			set_pos(encoder1.getCount() + l, encoder2.getCount() - l;
+			double_t l = (1 - v) * b * (50 / r) * 1920;
+			set_pos(encoder1.getCount() + l, encoder2.getCount() - l);
 		}
-	}
-	catch (const std::exception &e)
-	{
-		Serial.println("test");
-		Serial.printf("Exception: %s\n", e.what());
 	}
 }
 
@@ -666,7 +661,7 @@ void setup_tasks()
 	xTaskCreatePinnedToCore(
 		position_task,		 /* Function to implement the task */
 		"position_task",	 /* Name of the task */
-		15000,				 /* Stack size in words */
+		5000,				 /* Stack size in words */
 		NULL,				 /* Task input parameter */
 		3,					 /* Priority of the task from 0 to 25, higher number = higher priority */
 		&PositionTaskHandle, /* Task handle. */
@@ -732,6 +727,8 @@ void loop()
 	Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", pid_pos_2.get_kp(), pid_pos_2.get_ki(), pid_pos_2.get_kd(), pid_pos_2.get_error());
 	Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", pid_vel1.get_kp(), pid_vel1.get_ki(), pid_vel1.get_kd(), pid_vel1.get_error());
 	Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", pid_vel2.get_kp(), pid_vel2.get_ki(), pid_vel2.get_kd(), pid_vel2.get_error());
+	Serial.printf("needed_rot: %f, device_rot: %f, device_x: %f, device_y: %f\n", needed_rotation, device_rotation, device_x, device_y);
+	setDestination(100, 0);
 
-	vTaskDelay(0.5 * configTICK_RATE_HZ);
+	vTaskDelay(0.2 * configTICK_RATE_HZ);
 }
