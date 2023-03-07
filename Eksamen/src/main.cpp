@@ -38,13 +38,17 @@ const int32_t ws_port = 1337;
 
 TaskHandle_t PidTaskHandle1;
 TaskHandle_t PidTaskHandle2;
+TaskHandle_t PidTaskHandle3;
 TaskHandle_t PositionTaskHandle;
 ESP32Encoder encoder1;
 ESP32Encoder encoder2;
+ESP32Encoder encoder3;
 Pid pid_pos_1(DT_S, PID_MAX_CTRL_VALUE);
 Pid pid_pos_2(DT_S, PID_MAX_CTRL_VALUE);
+Pid pid_pos_3(DT_S, PID_MAX_CTRL_VALUE);
 Pid pid_vel1(DT_S, PID_MAX_VEL_VALUE);
 Pid pid_vel2(DT_S, PID_MAX_VEL_VALUE);
+Pid pid_vel3(DT_S, PID_MAX_VEL_VALUE);
 H_Bridge hBridge1;
 H_Bridge hBridge2;
 H_Bridge hBridge3;
