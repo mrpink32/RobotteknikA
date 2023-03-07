@@ -78,7 +78,8 @@
 			"compare": "cpp",
 			"concepts": "cpp",
 			"netfwd": "cpp",
-			"numbers": "cpp"
+			"numbers": "cpp",
+			"*.lib": "cpp"
 		}
 	}
 }
