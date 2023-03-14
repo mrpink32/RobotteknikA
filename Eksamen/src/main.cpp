@@ -87,13 +87,15 @@ volatile double req_posx;
 volatile double req_posy;
 volatile double dest_posx;
 volatile double dest_posy;
-volatile double req_vel1;
-volatile double req_vel2;
-volatile int64_t current_pos1;
-volatile int64_t current_pos2;
-volatile double current_vel1;
-volatile double current_vel2;
-volatile double current_vel3;
+volatile double req_vel_1;
+volatile double req_vel_2;
+volatile double req_vel_3;
+volatile int64_t current_pos_1;
+volatile int64_t current_pos_2;
+volatile int64_t current_pos_3;
+volatile double current_vel_1;
+volatile double current_vel_2;
+volatile double current_vel_3;
 volatile double max_vel = 300;
 volatile double device_x = 0;
 volatile double device_y = 0;
@@ -524,16 +526,16 @@ void pid_task(void *arg)
     digitalWrite(PIN_PID_LOOP_1, HIGH);
 
     current_pos_1 = encoder1.getCount();
-    current_vel1 = (current_pos_1 - prev_pos1) / DT_S;
+    current_vel_1 = (current_pos_1 - prev_pos1) / DT_S;
 
     if (mode_pos)
     {
       pid_pos_1.update(req_posx, current_pos_1, &ctrl_pos_1, integration_threshold);
 
-      req_vel1 = constrain(ctrl_pos_1, -max_vel, max_vel);
+      req_vel_1 = constrain(ctrl_pos_1, -max_vel, max_vel);
     }
 
-    pid_vel1.update(req_vel1, current_vel1, &ctrl_vel1, integration_threshold);
+    pid_vel1.update(req_vel_1, current_vel_1, &ctrl_vel1, integration_threshold);
 
     hBridge1.set_pwm(ctrl_vel1);
 
@@ -553,16 +555,16 @@ void pid_task2(void *arg)
     digitalWrite(PIN_PID_LOOP_2, HIGH);
 
     current_pos_2 = encoder2.getCount();
-    current_vel2 = (current_pos_2 - prev_pos2) / DT_S;
+    current_vel_2 = (current_pos_2 - prev_pos2) / DT_S;
 
     if (mode_pos)
     {
       pid_pos_2.update(req_posy, current_pos_2, &ctrl_pos_2, integration_threshold);
 
-      req_vel2 = constrain(ctrl_pos_2, -max_vel, max_vel);
+      req_vel_2 = constrain(ctrl_pos_2, -max_vel, max_vel);
     }
 
-    pid_vel2.update(req_vel2, current_vel2, &ctrl_vel2, integration_threshold);
+    pid_vel2.update(req_vel_2, current_vel_2, &ctrl_vel2, integration_threshold);
 
     hBridge2.set_pwm(ctrl_vel2);
 
@@ -582,16 +584,16 @@ void pid_task3(void *arg)
     digitalWrite(PIN_PID_LOOP_3, HIGH);
 
     current_pos_3 = encoder3.getCount();
-    current_vel3 = (current_pos_3 - prev_pos3) / DT_S;
+    current_vel_3 = (current_pos_3 - prev_pos3) / DT_S;
 
     if (mode_pos)
     {
       pid_pos_3.update(req_posy, current_pos_3, &ctrl_pos_3, integration_threshold);
 
-      req_vel3 = constrain(ctrl_pos_3, -max_vel, max_vel);
+      req_vel_3 = constrain(ctrl_pos_3, -max_vel, max_vel);
     }
 
-    pid_vel2.update(req_vel3, current_vel3, &ctrl_vel3, integration_threshold);
+    pid_vel2.update(req_vel_3, current_vel_3, &ctrl_vel3, integration_threshold);
 
     hBridge2.set_pwm(ctrl_vel3);
 
@@ -735,7 +737,7 @@ void loop()
   WebSocket.loop();
   Serial.printf(
       "req_pos_1: %.2f  req_pos_2: %.2f  \ncurr_pos_1: %.2f  curr_pos_2: %.2f  \nctrl_pos_1: %.2f  ctrl_pos_2: %.2f  \nreq_vel_1: %.2f  req_vel_2: %.2f  curr_vel_1: %.2f curr_vel_2: %.2f ctrl_vel_1: %.2f ctrl_vel_2: %.2f\n\r",
-      req_posx, req_posy, (double)current_pos_1, (double)current_pos_2, ctrl_pos_1, ctrl_pos_2, req_vel1, req_vel2, current_vel1, current_vel2, ctrl_vel1, ctrl_vel2);
+      req_posx, req_posy, (double)current_pos_1, (double)current_pos_2, ctrl_pos_1, ctrl_pos_2, req_vel_1, req_vel_2, current_vel_1, current_vel_2, ctrl_vel1, ctrl_vel2);
   Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", pid_pos_1.get_kp(), pid_pos_1.get_ki(), pid_pos_1.get_kd(), pid_pos_1.get_error());
   Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", pid_pos_2.get_kp(), pid_pos_2.get_ki(), pid_pos_2.get_kd(), pid_pos_2.get_error());
   Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", pid_vel1.get_kp(), pid_vel1.get_ki(), pid_vel1.get_kd(), pid_vel1.get_error());
