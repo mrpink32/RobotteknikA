@@ -61,10 +61,13 @@ volatile double dest_posx;
 volatile double dest_posy;
 volatile double req_vel1;
 volatile double req_vel2;
+volatile double req_vel3;
 volatile int64_t current_pos1;
 volatile int64_t current_pos2;
+volatile int64_t current_pos3;
 volatile double current_vel1;
 volatile double current_vel2;
+volatile double current_vel3;
 volatile double max_vel = 300;
 volatile double device_x = 0;
 volatile double device_y = 0;
@@ -75,8 +78,10 @@ const double r = 5.05;
 
 double ctrl_pos_1;
 double ctrl_pos_2;
+double ctrl_pos_3;
 double ctrl_vel1;
 double ctrl_vel2;
+double ctrl_vel3;
 
 bool mode_pos = true;
 
