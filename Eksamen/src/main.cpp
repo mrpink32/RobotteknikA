@@ -64,7 +64,7 @@ const int32_t ws_port = 1337;
 
 TaskHandle_t PidTaskHandle1;
 TaskHandle_t PidTaskHandle2;
-TaskHandle_t PidTaskHandle3;
+TaskHandle_t PidTaskHandle_3;
 TaskHandle_t PositionTaskHandle;
 ESP32Encoder encoder1;
 ESP32Encoder encoder2;
@@ -574,7 +574,7 @@ void pid_task2(void *arg)
   }
 }
 
-void pid_task3(void *arg)
+void pid_task_3(void *arg)
 {
   int64_t prev_pos3 = current_pos_3;
   TickType_t xTimeIncrement = configTICK_RATE_HZ * pid_pos_3.get_dt();
@@ -671,6 +671,15 @@ void setup_tasks()
       NULL,            /* Task input parameter */
       3,               /* Priority of the task from 0 to 25, higher number = higher priority */
       &PidTaskHandle2, /* Task handle. */
+      1);
+  log_i("starting pid task");
+  xTaskCreatePinnedToCore(
+      pid_task_3,       /* Function to implement the task */
+      "pid_task_3",     /* Name of the task */
+      5000,             /* Stack size in words */
+      NULL,             /* Task input parameter */
+      3,                /* Priority of the task from 0 to 25, higher number = higher priority */
+      &PidTaskHandle_3, /* Task handle. */
       1);
   log_i("starting motion task");
   xTaskCreatePinnedToCore(
