@@ -564,6 +564,35 @@ void pid_task2(void *arg)
   }
 }
 
+void pid_task3(void *arg)
+{
+  int64_t prev_pos3 = current_pos3;
+  TickType_t xTimeIncrement = configTICK_RATE_HZ * pid_pos_3.get_dt();
+  TickType_t xLastWakeTime = xTaskGetTickCount();
+  for (;;)
+  { // loop tager mindre end 18us * 2
+    digitalWrite(PIN_PID_LOOP_3, HIGH);
+
+    current_pos3 = encoder3.getCount();
+    current_vel3 = (current_pos3 - prev_pos3) / DT_S;
+
+    if (mode_pos)
+    {
+      pid_pos_3.update(req_posy, current_pos3, &ctrl_pos_3, integration_threshold);
+
+      req_vel3 = constrain(ctrl_pos_3, -max_vel, max_vel);
+    }
+
+    pid_vel2.update(req_vel3, current_vel3, &ctrl_vel3, integration_threshold);
+
+    hBridge2.set_pwm(ctrl_vel3);
+
+    prev_pos3 = current_pos3;
+    digitalWrite(PIN_PID_LOOP_3, LOW);
+    vTaskDelayUntil(&xLastWakeTime, xTimeIncrement);
+  }
+}
+
 void position_task(void *arg)
 {
   for (;;)
