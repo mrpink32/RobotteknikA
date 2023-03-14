@@ -6,9 +6,10 @@
 #include <math.h>
 #include <string>
 #include <Arduino.h>
+// #include <motor.h>
+#include <global.h>
 #include <pid.h>
 #include <hbridge.h>
-#include <global.h>
 
 /* comment out for router connection */
 #define SOFT_AP
@@ -21,6 +22,26 @@ const char *password = "grimgrim";
 const char *ssid = "grim2";
 const char *password = "1234";
 #endif
+
+class Motor
+{
+private:
+  ESP32Encoder encoder;
+  H_Bridge hBridge;
+
+  Motor(double delta_time_seconds, double PID_MAX_CTRL_VALUE);
+  ~Motor();
+};
+
+Motor::Motor(double delta_time_seconds, double PID_MAX_CTRL_VALUE)
+{
+  Pid position_pid(delta_time_seconds, PID_MAX_CTRL_VALUE);
+  Pid velocity_pid(delta_time_seconds, PID_MAX_CTRL_VALUE);
+}
+
+Motor::~Motor()
+{
+}
 
 // Globals
 
@@ -46,12 +67,14 @@ ESP32Encoder encoder3;
 Pid pid_pos_1(DT_S, PID_MAX_CTRL_VALUE);
 Pid pid_pos_2(DT_S, PID_MAX_CTRL_VALUE);
 Pid pid_pos_3(DT_S, PID_MAX_CTRL_VALUE);
-Pid pid_vel1(DT_S, PID_MAX_VEL_VALUE);
-Pid pid_vel2(DT_S, PID_MAX_VEL_VALUE);
-Pid pid_vel3(DT_S, PID_MAX_VEL_VALUE);
+Pid pid_vel1(DT_S, PID_MAX_CTRL_VALUE);
+Pid pid_vel2(DT_S, PID_MAX_CTRL_VALUE);
+Pid pid_vel3(DT_S, PID_MAX_CTRL_VALUE);
 H_Bridge hBridge1;
 H_Bridge hBridge2;
 H_Bridge hBridge3;
+
+// Motor motor1(DT_S, PID_MAX_CTRL_VALUE);
 
 const double integration_threshold = 200;
 
@@ -85,49 +108,6 @@ WebSocketsServer WebSocket = WebSocketsServer(ws_port);
 char MsgBuf[32];
 int32_t LedState = 0;
 int32_t SliderVal = 0;
-
-// class Motor
-// {
-// private:
-// 	ESP32Encoder encoder;
-// 	H_Bridge h_bridge;
-// 	double req_pos;
-// 	double req_vel;
-// 	int64_t current_pos;
-// 	double current_vel;
-
-// 	double ctrl_pos;
-// 	double ctrl_vel;
-
-// 	bool mode_pos = true;
-// 	double max_vel = 300;
-
-// public:
-// 	Motor(int aPintNumber, int bPinNumber);
-// 	~Motor();
-// };
-
-// Motor::Motor(int aPintNumber, int bPinNumber)
-// {
-// 	Pid pid_pos(DT_S, PID_MAX_CTRL_VALUE);
-// 	Pid pid_vel(DT_S, PID_MAX_VEL_VALUE);
-
-// 	encoder.attachFullQuad(aPintNumber, bPinNumber);
-// 	encoder.clearCount();
-// 	h_bridge.begin(PIN_HBRIDGE_PWM, PIN_HBRIDGE_INA, PIN_HBRIDGE_INB,
-// 				   PWM_FREQ_HZ, PWM_RES_BITS, PWM_CH, PID_MAX_CTRL_VALUE);
-// 	pid_pos.set_kp(10.0); // 12
-// 	pid_pos.set_ki(2.0);
-// 	pid_pos.set_kd(0.000);
-
-// 	pid_vel.set_kp(0);
-// 	pid_vel.set_ki(12);
-// 	pid_vel.set_kd(0);
-// }
-
-// Motor::~Motor()
-// {
-// }
 
 /***********************************************************
  * Functions
@@ -687,9 +667,9 @@ void setup()
   encoder2.clearCount();
 
   hBridge1.begin(PIN_HBRIDGE_PWM, PIN_HBRIDGE_INA, PIN_HBRIDGE_INB,
-                 PWM_FREQ_HZ, PWM_RES_BITS, PWM_CH1, PID_MAX_CTRL_VALUE);
-  hBridge2.begin(PIN_HBRIDGE_PWM2, PIN_HBRIDGE_INA2, PIN_HBRIDGE_INB2,
-                 PWM_FREQ_HZ, PWM_RES_BITS, PWM_CH2, PID_MAX_CTRL_VALUE);
+                 PWM_FREQ_HZ, PWM_RES_BITS, PWM_CH_1, PID_MAX_CTRL_VALUE);
+  hBridge2.begin(PIN_HBRIDGE_PWM_2, PIN_HBRIDGE_INA_2, PIN_HBRIDGE_INB_2,
+                 PWM_FREQ_HZ, PWM_RES_BITS, PWM_CH_2, PID_MAX_CTRL_VALUE);
 
   pid_pos_1.set_kp(10.0); // 12
   pid_pos_1.set_ki(2.0);
