@@ -213,7 +213,7 @@ void handle_slider(char *command, uint8_t client_num)
   }
 }
 
-void set_pos(double posx, double posy)
+void request_pos(double posx, double posy)
 {
   req_posx = posx;
   req_posy = posy;
@@ -637,17 +637,17 @@ void position_task(void *arg)
     if (min(v, 1 - v) < 0.05)
     {
       double_t l = sqrt(pow(device_x - dest_posx, 2) + pow(device_y - dest_posy, 2)) * (50 / r * M_PI) * 1920;
-      set_pos(encoder1.getCount() + l, encoder2.getCount() + l);
+      request_pos(encoder1.getCount() + l, encoder2.getCount() + l);
     }
     else if (v < 0.5)
     {
       double_t l = v * b * (50 / r) * 1920;
-      set_pos(encoder1.getCount() + l, encoder2.getCount() - l);
+      request_pos(encoder1.getCount() + l, encoder2.getCount() - l);
     }
     else
     {
       double_t l = (1 - v) * b * (50 / r) * 1920;
-      set_pos(encoder1.getCount() + l, encoder2.getCount() - l);
+      request_pos(encoder1.getCount() + l, encoder2.getCount() - l);
     }
   }
 }
