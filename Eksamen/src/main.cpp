@@ -89,8 +89,11 @@ volatile double dest_posx;
 volatile double dest_posy;
 volatile double req_vel1;
 volatile double req_vel2;
+volatile double req_vel3;
+
 volatile int64_t current_pos1;
 volatile int64_t current_pos2;
+volatile int64_t current_pos3;
 volatile double current_vel1;
 volatile double current_vel2;
 volatile double current_vel3;
