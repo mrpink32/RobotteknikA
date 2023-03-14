@@ -17,7 +17,7 @@
 /* Constants */
 #ifdef SOFT_AP
 const char *ssid = "grim";
-const char *password = "grimgrim";
+const char *password = "grim";
 #else
 const char *ssid = "grim2";
 const char *password = "1234";
@@ -30,6 +30,9 @@ private:
   H_Bridge hBridge;
   int64_t current_pos;
   int64_t current_vel;
+  // might be better to use integers
+  double requested_position;
+  double requested_velocity;
 
   Motor(double delta_time_seconds, double PID_MAX_CTRL_VALUE);
   ~Motor();
