@@ -1,0 +1,811 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="1920"
+   height="1080"
+   viewBox="0 0 508 285.75"
+   version="1.1"
+   id="svg5"
+   sodipodi:docname="UI_Example.svg"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   inkscape:export-filename="UI_Example.png"
+   inkscape:export-xdpi="101.05264"
+   inkscape:export-ydpi="101.05264"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="false"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="px"
+     showgrid="true"
+     inkscape:zoom="0.35355339"
+     inkscape:cx="859.84184"
+     inkscape:cy="1175.2115"
+     inkscape:window-width="1444"
+     inkscape:window-height="1080"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1">
+    <inkscape:grid
+       type="xygrid"
+       id="grid111"
+       originx="0"
+       originy="0"
+       enabled="true"
+       visible="true"
+       snapvisiblegridlinesonly="true" />
+  </sodipodi:namedview>
+  <defs
+     id="defs2">
+    <rect
+       x="198.77301"
+       y="263.55828"
+       width="205.28003"
+       height="56.770394"
+       id="rect313" />
+    <rect
+       x="180.43717"
+       y="249.69588"
+       width="357.22914"
+       height="169.50158"
+       id="rect647" />
+    <rect
+       x="653.40698"
+       y="72.171185"
+       width="63.149787"
+       height="29.641737"
+       id="rect273" />
+    <rect
+       x="198.77301"
+       y="263.55828"
+       width="205.28003"
+       height="56.770394"
+       id="rect473" />
+    <rect
+       x="198.77301"
+       y="263.55828"
+       width="205.28003"
+       height="56.770394"
+       id="rect479" />
+    <rect
+       x="198.77301"
+       y="263.55828"
+       width="205.28003"
+       height="56.770394"
+       id="rect1245" />
+    <rect
+       x="198.77301"
+       y="263.55828"
+       width="205.28003"
+       height="56.770394"
+       id="rect1247" />
+    <rect
+       x="198.77301"
+       y="263.55828"
+       width="205.28003"
+       height="56.770394"
+       id="rect1249" />
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="fill:#333333;stroke-width:0.264583"
+       id="rect591"
+       width="508"
+       height="285.75"
+       x="0"
+       y="0" />
+    <text
+       xml:space="preserve"
+       style="font-size:25.4px;fill:#008000;stroke-width:0.267754"
+       x="173.51004"
+       y="40.647289"
+       id="text219"
+       transform="scale(0.99741253,1.0025942)"><tspan
+         id="tspan217"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:25.4px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.267754"
+         x="173.51004"
+         y="40.647289"
+         sodipodi:role="line">Control Panel</tspan></text>
+    <text
+       xml:space="preserve"
+       transform="scale(0.26458333)"
+       id="text271"
+       style="white-space:pre;shape-inside:url(#rect273);display:inline;fill:#000000" />
+    <rect
+       style="fill:#808080;stroke-width:0.303066"
+       id="rect391"
+       width="132.29167"
+       height="211.66667"
+       x="35.454166"
+       y="52.916668" />
+    <rect
+       style="fill:#808080;stroke-width:0.303067"
+       id="rect397"
+       width="132.29167"
+       height="211.66667"
+       x="187.85417"
+       y="52.916668" />
+    <rect
+       style="fill:#808080;stroke-width:0.303067"
+       id="rect399"
+       width="132.29167"
+       height="211.66667"
+       x="340.25418"
+       y="52.916668" />
+    <text
+       xml:space="preserve"
+       transform="scale(0.26458333)"
+       id="text645"
+       style="font-size:96px;white-space:pre;shape-inside:url(#rect647);display:inline;fill:#808080" />
+    <text
+       xml:space="preserve"
+       transform="matrix(0.42380705,0,0,0.58052679,-23.718034,-91.610119)"
+       id="text311"
+       style="font-size:45.5183px;white-space:pre;shape-inside:url(#rect313);display:inline;fill:#008000"><tspan
+         x="198.77344"
+         y="304.97456"
+         id="tspan2183"><tspan
+           style="font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00"
+           id="tspan2181">Motor 1</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       transform="matrix(0.42380705,0,0,0.56066601,128.65758,-86.033941)"
+       id="text471"
+       style="font-size:46.3175px;white-space:pre;shape-inside:url(#rect473);display:inline;fill:#008000"><tspan
+         x="198.77344"
+         y="305.70174"
+         id="tspan2187"><tspan
+           style="font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00"
+           id="tspan2185">Motor 2</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       transform="matrix(0.42380705,0,0,0.56066601,281.75881,-86.033941)"
+       id="text477"
+       style="font-size:46.3175px;white-space:pre;shape-inside:url(#rect479);display:inline;fill:#008000"><tspan
+         x="198.77344"
+         y="305.70174"
+         id="tspan2191"><tspan
+           style="font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00"
+           id="tspan2189">Motor 3</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="38.778744"
+       y="100.27921"
+       id="text483"><tspan
+         sodipodi:role="line"
+         id="tspan481"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="38.778744"
+         y="100.27921">Position pid</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="38.729355"
+       y="113.14289"
+       id="text487"><tspan
+         sodipodi:role="line"
+         id="tspan485"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="38.729355"
+         y="113.14289">kp: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="38.729355"
+       y="126.73753"
+       id="text491"><tspan
+         sodipodi:role="line"
+         id="tspan489"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="38.729355"
+         y="126.73753">ki: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="38.729355"
+       y="139.60123"
+       id="text495"><tspan
+         sodipodi:role="line"
+         id="tspan493"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="38.729355"
+         y="139.60123">kd: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="38.857765"
+       y="152.83038"
+       id="text531"><tspan
+         sodipodi:role="line"
+         id="tspan529"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="38.857765"
+         y="152.83038">error: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87777px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="38.778744"
+       y="166.05956"
+       id="text535"><tspan
+         sodipodi:role="line"
+         id="tspan533"
+         style="stroke-width:0.264583"
+         x="38.778744"
+         y="166.05956">prev error: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="39.193611"
+       y="186.26878"
+       id="text625"><tspan
+         sodipodi:role="line"
+         id="tspan623"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="39.193611"
+         y="186.26878">Velocity pid</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="38.729355"
+       y="199.13246"
+       id="text629"><tspan
+         sodipodi:role="line"
+         id="tspan627"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="38.729355"
+         y="199.13246">kp: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="38.729355"
+       y="212.72711"
+       id="text633"><tspan
+         sodipodi:role="line"
+         id="tspan631"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="38.729355"
+         y="212.72711">ki: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="38.729355"
+       y="225.59081"
+       id="text637"><tspan
+         sodipodi:role="line"
+         id="tspan635"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="38.729355"
+         y="225.59081">kd: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="38.857765"
+       y="238.81996"
+       id="text641"><tspan
+         sodipodi:role="line"
+         id="tspan639"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="38.857765"
+         y="238.81996">error: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87777px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="38.778744"
+       y="252.04913"
+       id="text646"><tspan
+         sodipodi:role="line"
+         id="tspan643"
+         style="stroke-width:0.264583"
+         x="38.778744"
+         y="252.04913">prev error: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="190.91417"
+       y="100.27921"
+       id="text654"><tspan
+         sodipodi:role="line"
+         id="tspan652"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="190.91417"
+         y="100.27921">Position pid</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="190.86478"
+       y="113.14289"
+       id="text658"><tspan
+         sodipodi:role="line"
+         id="tspan656"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="190.86478"
+         y="113.14289">kp: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="190.86478"
+       y="126.73753"
+       id="text662"><tspan
+         sodipodi:role="line"
+         id="tspan660"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="190.86478"
+         y="126.73753">ki: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="190.86478"
+       y="139.60123"
+       id="text666"><tspan
+         sodipodi:role="line"
+         id="tspan664"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="190.86478"
+         y="139.60123">kd: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="190.99319"
+       y="152.83038"
+       id="text670"><tspan
+         sodipodi:role="line"
+         id="tspan668"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="190.99319"
+         y="152.83038">error: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87777px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="190.91417"
+       y="166.05956"
+       id="text674"><tspan
+         sodipodi:role="line"
+         id="tspan672"
+         style="stroke-width:0.264583"
+         x="190.91417"
+         y="166.05956">prev error: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="191.32904"
+       y="186.26878"
+       id="text678"><tspan
+         sodipodi:role="line"
+         id="tspan676"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="191.32904"
+         y="186.26878">Velocity pid</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="190.86478"
+       y="199.13246"
+       id="text682"><tspan
+         sodipodi:role="line"
+         id="tspan680"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="190.86478"
+         y="199.13246">kp: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="190.86478"
+       y="212.72711"
+       id="text686"><tspan
+         sodipodi:role="line"
+         id="tspan684"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="190.86478"
+         y="212.72711">ki: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="190.86478"
+       y="225.59081"
+       id="text690"><tspan
+         sodipodi:role="line"
+         id="tspan688"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="190.86478"
+         y="225.59081">kd: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="190.99319"
+       y="238.81996"
+       id="text694"><tspan
+         sodipodi:role="line"
+         id="tspan692"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="190.99319"
+         y="238.81996">error: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87777px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="190.91417"
+       y="252.04913"
+       id="text698"><tspan
+         sodipodi:role="line"
+         id="tspan696"
+         style="stroke-width:0.264583"
+         x="190.91417"
+         y="252.04913">prev error: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="343.04959"
+       y="100.27921"
+       id="text702"><tspan
+         sodipodi:role="line"
+         id="tspan700"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="343.04959"
+         y="100.27921">Position pid</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="343.00021"
+       y="113.14289"
+       id="text706"><tspan
+         sodipodi:role="line"
+         id="tspan704"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="343.00021"
+         y="113.14289">kp: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="343.00021"
+       y="126.73753"
+       id="text710"><tspan
+         sodipodi:role="line"
+         id="tspan708"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="343.00021"
+         y="126.73753">ki: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="343.00021"
+       y="139.60123"
+       id="text714"><tspan
+         sodipodi:role="line"
+         id="tspan712"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="343.00021"
+         y="139.60123">kd: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="343.1286"
+       y="152.83038"
+       id="text718"><tspan
+         sodipodi:role="line"
+         id="tspan716"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="343.1286"
+         y="152.83038">error: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87777px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="343.04959"
+       y="166.05956"
+       id="text722"><tspan
+         sodipodi:role="line"
+         id="tspan720"
+         style="stroke-width:0.264583"
+         x="343.04959"
+         y="166.05956">prev error: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="343.46445"
+       y="186.26878"
+       id="text726"><tspan
+         sodipodi:role="line"
+         id="tspan724"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="343.46445"
+         y="186.26878">Velocity pid</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="343.00021"
+       y="199.13246"
+       id="text730"><tspan
+         sodipodi:role="line"
+         id="tspan728"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="343.00021"
+         y="199.13246">kp: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="343.00021"
+       y="212.72711"
+       id="text734"><tspan
+         sodipodi:role="line"
+         id="tspan732"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="343.00021"
+         y="212.72711">ki: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="343.00021"
+       y="225.59081"
+       id="text738"><tspan
+         sodipodi:role="line"
+         id="tspan736"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="343.00021"
+         y="225.59081">kd: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="343.1286"
+       y="238.81996"
+       id="text742"><tspan
+         sodipodi:role="line"
+         id="tspan740"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="343.1286"
+         y="238.81996">error: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87777px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="343.04959"
+       y="252.04913"
+       id="text746"><tspan
+         sodipodi:role="line"
+         id="tspan744"
+         style="stroke-width:0.264583"
+         x="343.04959"
+         y="252.04913">prev error: 0</tspan></text>
+    <circle
+       style="fill:#000000;stroke-width:0.268397"
+       id="path962"
+       cx="489.47916"
+       cy="18.520834"
+       r="13.229167" />
+    <rect
+       style="fill:#333333;stroke-width:0.264583"
+       id="rect1075"
+       width="508"
+       height="285.75"
+       x="0"
+       y="317.5" />
+    <text
+       xml:space="preserve"
+       style="font-size:25.4px;fill:#008000;stroke-width:0.267754"
+       x="173.51004"
+       y="357.32578"
+       id="text1079"
+       transform="scale(0.99741252,1.0025942)"><tspan
+         id="tspan1077"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:25.4px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.267754"
+         x="173.51004"
+         y="357.32578"
+         sodipodi:role="line">Control Panel</tspan></text>
+    <rect
+       style="fill:#808080;stroke-width:0.55088"
+       id="rect1081"
+       width="437.09167"
+       height="211.66667"
+       x="35.454166"
+       y="370.41669" />
+    <text
+       xml:space="preserve"
+       transform="matrix(0.42380705,0,0,0.58052679,128.68197,225.8899)"
+       id="text1089"
+       style="font-size:45.5183px;white-space:pre;shape-inside:url(#rect1245);display:inline;fill:#008000"><tspan
+         x="198.77344"
+         y="304.97456"
+         id="tspan2195"><tspan
+           style="font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00"
+           id="tspan2193">Motor 1</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="38.778744"
+       y="417.77924"
+       id="text1101"><tspan
+         sodipodi:role="line"
+         id="tspan1099"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="38.778744"
+         y="417.77924">Position pid</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="38.729355"
+       y="430.64291"
+       id="text1105"><tspan
+         sodipodi:role="line"
+         id="tspan1103"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="38.729355"
+         y="430.64291">kp: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="38.729355"
+       y="444.23755"
+       id="text1109"><tspan
+         sodipodi:role="line"
+         id="tspan1107"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="38.729355"
+         y="444.23755">ki: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="38.729355"
+       y="457.10123"
+       id="text1113"><tspan
+         sodipodi:role="line"
+         id="tspan1111"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="38.729355"
+         y="457.10123">kd: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="38.857765"
+       y="470.33038"
+       id="text1117"><tspan
+         sodipodi:role="line"
+         id="tspan1115"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="38.857765"
+         y="470.33038">error: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87777px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="38.778744"
+       y="483.55957"
+       id="text1121"><tspan
+         sodipodi:role="line"
+         id="tspan1119"
+         style="stroke-width:0.264583"
+         x="38.778744"
+         y="483.55957">prev error: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="39.193611"
+       y="503.7688"
+       id="text1125"><tspan
+         sodipodi:role="line"
+         id="tspan1123"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="39.193611"
+         y="503.7688">Velocity pid</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="38.729355"
+       y="516.63245"
+       id="text1129"><tspan
+         sodipodi:role="line"
+         id="tspan1127"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="38.729355"
+         y="516.63245">kp: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="38.729355"
+       y="530.22711"
+       id="text1133"><tspan
+         sodipodi:role="line"
+         id="tspan1131"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="38.729355"
+         y="530.22711">ki: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="38.729355"
+       y="543.09082"
+       id="text1137"><tspan
+         sodipodi:role="line"
+         id="tspan1135"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="38.729355"
+         y="543.09082">kd: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="38.857765"
+       y="556.31995"
+       id="text1141"><tspan
+         sodipodi:role="line"
+         id="tspan1139"
+         style="font-size:9.87778px;stroke-width:0.264583"
+         x="38.857765"
+         y="556.31995">error: 0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87777px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
+       x="38.778744"
+       y="569.54913"
+       id="text1145"><tspan
+         sodipodi:role="line"
+         id="tspan1143"
+         style="stroke-width:0.264583"
+         x="38.778744"
+         y="569.54913">prev error: 0</tspan></text>
+    <circle
+       style="fill:#000000;stroke-width:0.268397"
+       id="circle1243"
+       cx="489.47916"
+       cy="336.02084"
+       r="13.229167" />
+    <rect
+       style="fill:#ffffff;stroke-width:0.263576"
+       id="rect1355"
+       width="264.58334"
+       height="132.29167"
+       x="179.91667"
+       y="423.33334" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87777px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;stroke-width:0.264583"
+       x="188.55215"
+       y="486.9632"
+       id="text1461"><tspan
+         sodipodi:role="line"
+         id="tspan1459"
+         style="stroke-width:0.264583;fill:#000000"
+         x="188.55215"
+         y="486.9632" /></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87777px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;stroke-width:0.264583"
+       x="184.3786"
+       y="492.3649"
+       id="text1567"><tspan
+         sodipodi:role="line"
+         id="tspan1565"
+         style="stroke-width:0.264583"
+         x="184.3786"
+         y="492.3649">error</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87777px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;stroke-width:0.264583"
+       x="298.02145"
+       y="550.07086"
+       id="text1571"><tspan
+         sodipodi:role="line"
+         id="tspan1569"
+         style="stroke-width:0.264583;fill:#000000"
+         x="298.02145"
+         y="550.07086">time</tspan></text>
+    <rect
+       style="fill:#ececec;stroke-width:0.295244"
+       id="rect1753"
+       width="198.4375"
+       height="92.604164"
+       x="218.28125"
+       y="444.5" />
+    <path
+       style="fill:#ff0000;stroke-width:0.264583"
+       d="m 219.27251,536.61161 6.33576,-6.33576 8.81498,-3.3056 h 13.7734 19.0073 l 13.49793,2.75465 22.58835,-0.8264 23.69026,0.8264 h 33.88257 l 16.80353,1.37735 20.38464,-0.8264 13.22247,1.10188 2.4792,1.37734 2.96584,4.34806 H 218.28132 Z"
+       id="path1863" />
+  </g>
+</svg>

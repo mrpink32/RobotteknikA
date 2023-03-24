@@ -15,7 +15,7 @@ const int32_t PIN_HBRIDGE_INB_1 = 18; // hbridge INB pin
 const int32_t PIN_HBRIDGE_PWM_1 = 19; // hbridhe PWM pin
 
 // Motor 2:
-const int32_t PIN_PID_LOOP_2 = 2; // debug monitoring pid loop
+const int32_t PIN_PID_LOOP_2 = 4; // debug monitoring pid loop
 // const int32_t PIN_LIMIT_SW = 25;    // limit switch pin
 const int32_t PIN_ENC_A_2 = 25;       // encoder A ch
 const int32_t PIN_ENC_B_2 = 33;       // encoder B ch
@@ -43,7 +43,5 @@ const int32_t PWM_MAX = pow(2, PWM_RES_BITS) - 1; // maximum pwm value
 
 // PID SETUP
 const double DT_S = 0.01; // loop time in seconds
-const double MIN_CTRL_VALUE = -100;
-const double MAX_CTRL_VALUE = 100;
-const double PID_MAX_CTRL_VALUE = 10000;
-// const double PID_MAX_VEL_VALUE = 10000;
+const int32_t MAX_CTRL_VALUE = 10000;
+// const int32_t MIN_CTRL_VALUE = -MAX_CTRL_VALUE;

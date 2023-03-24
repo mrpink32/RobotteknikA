@@ -6,10 +6,8 @@
 #include <math.h>
 #include <string>
 #include <Arduino.h>
-// #include <motor.h>
+#include <motor.h>
 #include <global.h>
-#include <pid.h>
-#include <hbridge.h>
 
 /* comment out for router connection */
 #define SOFT_AP
@@ -19,34 +17,9 @@
 const char *ssid = "grim";
 const char *password = "grim";
 #else
-const char *ssid = "grim2";
+const char *ssid = "ikke-grim";
 const char *password = "1234";
 #endif
-
-class Motor
-{
-private:
-    ESP32Encoder encoder;
-    H_Bridge hBridge;
-    int64_t current_pos;
-    int64_t current_vel;
-    // might be better to use integers
-    double requested_position;
-    double requested_velocity;
-
-    Motor(double delta_time_seconds, double PID_MAX_CTRL_VALUE);
-    ~Motor();
-};
-
-Motor::Motor(double delta_time_seconds, double PID_MAX_CTRL_VALUE)
-{
-    Pid position_pid(delta_time_seconds, PID_MAX_CTRL_VALUE);
-    Pid velocity_pid(delta_time_seconds, PID_MAX_CTRL_VALUE);
-}
-
-Motor::~Motor()
-{
-}
 
 // Globals
 
@@ -69,17 +42,22 @@ TaskHandle_t PositionTaskHandle;
 ESP32Encoder encoder1;
 ESP32Encoder encoder2;
 ESP32Encoder encoder3;
-Pid pid_pos_1(DT_S, PID_MAX_CTRL_VALUE);
-Pid pid_pos_2(DT_S, PID_MAX_CTRL_VALUE);
-Pid pid_pos_3(DT_S, PID_MAX_CTRL_VALUE);
-Pid pid_vel1(DT_S, PID_MAX_CTRL_VALUE);
-Pid pid_vel2(DT_S, PID_MAX_CTRL_VALUE);
-Pid pid_vel3(DT_S, PID_MAX_CTRL_VALUE);
-H_Bridge hBridge1;
-H_Bridge hBridge2;
-H_Bridge hBridge3;
+// Pid pid_pos_1(DT_S, PID_MAX_CTRL_VALUE);
+// Pid pid_pos_2(DT_S, PID_MAX_CTRL_VALUE);
+// Pid pid_pos_3(DT_S, PID_MAX_CTRL_VALUE);
+// Pid pid_vel1(DT_S, PID_MAX_CTRL_VALUE);
+// Pid pid_vel2(DT_S, PID_MAX_CTRL_VALUE);
+// Pid pid_vel3(DT_S, PID_MAX_CTRL_VALUE);
+// H_Bridge hBridge1;
+// H_Bridge hBridge2;
+// H_Bridge hBridge3;
 
-// Motor motor1(DT_S, PID_MAX_CTRL_VALUE);
+Motor motor1(PIN_HBRIDGE_PWM_1, PIN_HBRIDGE_INA_1, PIN_HBRIDGE_INB_1,
+             PWM_FREQ_HZ, PWM_RES_BITS, PWM_CH_1, MAX_CTRL_VALUE, DT_S);
+Motor motor2(PIN_HBRIDGE_PWM_2, PIN_HBRIDGE_INA_2, PIN_HBRIDGE_INB_2,
+             PWM_FREQ_HZ, PWM_RES_BITS, PWM_CH_2, MAX_CTRL_VALUE, DT_S);
+Motor motor3(PIN_HBRIDGE_PWM_3, PIN_HBRIDGE_INA_3, PIN_HBRIDGE_INB_3,
+             PWM_FREQ_HZ, PWM_RES_BITS, PWM_CH_3, MAX_CTRL_VALUE, DT_S);
 
 const double integration_threshold = 200;
 
@@ -87,15 +65,12 @@ volatile double req_posx;
 volatile double req_posy;
 volatile double dest_posx;
 volatile double dest_posy;
-volatile double req_vel_1;
-volatile double req_vel_2;
-volatile double req_vel_3;
-volatile int64_t current_pos_1;
-volatile int64_t current_pos_2;
-volatile int64_t current_pos_3;
-volatile double current_vel_1;
-volatile double current_vel_2;
-volatile double current_vel_3;
+// volatile int32_t current_pos_1;
+// volatile int32_t current_pos_2;
+// volatile int32_t current_pos_3;
+// volatile double_t current_vel_1;
+// volatile double_t current_vel_2;
+// volatile double_t current_vel_3;
 volatile double max_vel = 300;
 volatile double device_x = 0;
 volatile double device_y = 0;
@@ -321,18 +296,21 @@ void handle_kx(char *command, uint8_t client_num)
     {
     case 'p':
         parm_value = &result;
-        pid_pos_1.set_kp(*parm_value);
-        pid_pos_2.set_kp(*parm_value);
+        motor1.position_pid.set_kp(*parm_value);
+        motor2.position_pid.set_kp(*parm_value);
+        motor3.position_pid.set_kp(*parm_value);
         break;
     case 'i':
         parm_value = &result;
-        pid_pos_1.set_ki(*parm_value);
-        pid_pos_2.set_ki(*parm_value);
+        motor1.position_pid.set_ki(*parm_value);
+        motor2.position_pid.set_ki(*parm_value);
+        motor3.position_pid.set_ki(*parm_value);
         break;
     case 'd':
         parm_value = &result;
-        pid_pos_1.set_kd(*parm_value);
-        pid_pos_2.set_kd(*parm_value);
+        motor1.position_pid.set_kd(*parm_value);
+        motor2.position_pid.set_kd(*parm_value);
+        motor3.position_pid.set_kd(*parm_value);
         break;
     default:
         log_e("[%u]: Bad command %s", client_num, command);
@@ -518,15 +496,16 @@ void setup_network()
 
 double_t DotProduct(std::vector<double_t> vec_1, std::vector<double_t> vec_2)
 {
-    if (vec_1.size() == vec_2.size())
+    double_t result = 0;
+    if (vec_1.size() != vec_2.size())
     {
-        double_t result = 0;
-        for (size_t i = 0; i < vec_1.size(); i++)
-        {
-            result += vec_1[i] * vec_2[i];
-        }
         return result;
     }
+    for (size_t i = 0; i < vec_1.size(); i++)
+    {
+        result += vec_1[i] * vec_2[i];
+    }
+    return result;
 }
 
 std::vector<std::vector<double_t>> MatrixProduct(std::vector<std::vector<double_t>> matrix, std::vector<double_t> vector)
@@ -544,59 +523,63 @@ std::vector<std::vector<double_t>> MatrixProduct(std::vector<std::vector<double_
     return result;
 }
 
-void pid_task(void *arg)
+void pid_task_1(void *arg)
 {
-    int64_t prev_pos1 = current_pos_1;
-    TickType_t xTimeIncrement = configTICK_RATE_HZ * pid_pos_1.get_dt();
+    motor1.set_position(encoder1.getCount());
+    int64_t prev_pos = motor1.get_position();
+    TickType_t xTimeIncrement = configTICK_RATE_HZ * DT_S;
     TickType_t xLastWakeTime = xTaskGetTickCount();
     for (;;)
     { // loop tager mindre end 18us * 2
+        double_t req_vel = 0;
         digitalWrite(PIN_PID_LOOP_1, HIGH);
 
-        current_pos_1 = encoder1.getCount();
-        current_vel_1 = (current_pos_1 - prev_pos1) / DT_S;
+        motor1.set_position(encoder1.getCount());
+        motor1.set_velocity((motor1.get_position() - prev_pos) / DT_S);
 
         if (mode_pos)
         {
-            pid_pos_1.update(req_posx, current_pos_1, &ctrl_pos_1, integration_threshold);
+            motor1.position_pid.update(req_posx, motor1.get_position(), &ctrl_pos_1, integration_threshold);
 
-            req_vel_1 = constrain(ctrl_pos_1, -max_vel, max_vel);
+            req_vel = constrain(ctrl_pos_1, -max_vel, max_vel);
         }
 
-        pid_vel1.update(req_vel_1, current_vel_1, &ctrl_vel1, integration_threshold);
+        motor1.velocity_pid.update(req_vel, motor1.get_velocity(), &ctrl_vel1, integration_threshold);
 
-        hBridge1.set_pwm(ctrl_vel1);
+        motor1.hbridge.set_pwm(ctrl_vel1);
 
-        prev_pos1 = current_pos_1;
+        prev_pos = motor1.get_position();
         digitalWrite(PIN_PID_LOOP_1, LOW);
         vTaskDelayUntil(&xLastWakeTime, xTimeIncrement);
     }
 }
 
-void pid_task2(void *arg)
+void pid_task_2(void *arg)
 {
-    int64_t prev_pos2 = current_pos_2;
-    TickType_t xTimeIncrement = configTICK_RATE_HZ * pid_pos_2.get_dt();
+    motor2.set_position(encoder2.getCount());
+    int64_t prev_pos = motor2.get_position();
+    TickType_t xTimeIncrement = configTICK_RATE_HZ * DT_S;
     TickType_t xLastWakeTime = xTaskGetTickCount();
     for (;;)
     { // loop tager mindre end 18us * 2
+        double_t req_vel = 0;
         digitalWrite(PIN_PID_LOOP_2, HIGH);
 
-        current_pos_2 = encoder2.getCount();
-        current_vel_2 = (current_pos_2 - prev_pos2) / DT_S;
+        motor2.set_position(encoder2.getCount());
+        motor2.set_velocity((motor2.get_position() - prev_pos) / DT_S);
 
         if (mode_pos)
         {
-            pid_pos_2.update(req_posy, current_pos_2, &ctrl_pos_2, integration_threshold);
+            motor2.position_pid.update(req_posy, motor2.get_position(), &ctrl_pos_2, integration_threshold);
 
-            req_vel_2 = constrain(ctrl_pos_2, -max_vel, max_vel);
+            req_vel = constrain(ctrl_pos_2, -max_vel, max_vel);
         }
 
-        pid_vel2.update(req_vel_2, current_vel_2, &ctrl_vel2, integration_threshold);
+        motor2.velocity_pid.update(req_vel, motor2.get_velocity(), &ctrl_vel2, integration_threshold);
 
-        hBridge2.set_pwm(ctrl_vel2);
+        motor2.hbridge.set_pwm(ctrl_vel2);
 
-        prev_pos2 = current_pos_2;
+        prev_pos = motor2.get_position();
         digitalWrite(PIN_PID_LOOP_2, LOW);
         vTaskDelayUntil(&xLastWakeTime, xTimeIncrement);
     }
@@ -604,87 +587,47 @@ void pid_task2(void *arg)
 
 void pid_task_3(void *arg)
 {
-    int64_t prev_pos3 = current_pos_3;
-    TickType_t xTimeIncrement = configTICK_RATE_HZ * pid_pos_3.get_dt();
+    motor3.set_position(encoder2.getCount());
+    int64_t prev_pos = motor3.get_position();
+    TickType_t xTimeIncrement = configTICK_RATE_HZ * DT_S;
     TickType_t xLastWakeTime = xTaskGetTickCount();
     for (;;)
     { // loop tager mindre end 18us * 2
+        double_t req_vel = 0;
         digitalWrite(PIN_PID_LOOP_3, HIGH);
 
-        current_pos_3 = encoder3.getCount();
-        current_vel_3 = (current_pos_3 - prev_pos3) / DT_S;
+        motor3.set_position(encoder3.getCount());
+        motor3.set_velocity((motor3.get_position() - prev_pos) / DT_S);
 
         if (mode_pos)
         {
-            pid_pos_3.update(req_posy, current_pos_3, &ctrl_pos_3, integration_threshold);
+            motor3.position_pid.update(req_posy, motor3.get_position(), &ctrl_pos_3, integration_threshold);
 
-            req_vel_3 = constrain(ctrl_pos_3, -max_vel, max_vel);
+            req_vel = constrain(ctrl_pos_3, -max_vel, max_vel);
         }
 
-        pid_vel2.update(req_vel_3, current_vel_3, &ctrl_vel3, integration_threshold);
+        motor3.velocity_pid.update(req_vel, motor3.get_velocity(), &ctrl_vel3, integration_threshold);
 
-        hBridge2.set_pwm(ctrl_vel3);
+        motor3.hbridge.set_pwm(ctrl_vel3);
 
-        prev_pos3 = current_pos_3;
+        prev_pos = motor3.get_position();
         digitalWrite(PIN_PID_LOOP_3, LOW);
         vTaskDelayUntil(&xLastWakeTime, xTimeIncrement);
     }
 }
 
-void position_task(void *arg)
-{
-    for (;;)
-    {
-        int64_t prev_pos1 = encoder1.getCount();
-        int64_t prev_pos2 = encoder2.getCount();
-        vTaskDelay(500 / portTICK_PERIOD_MS);
-        double_t L1 = ((encoder1.getCount() - prev_pos1) / 1920) * (r / 50) * M_PI;
-        double_t L2 = ((encoder2.getCount() - prev_pos2) / 1920) * (r / 50) * M_PI;
-        if (L2 - L1 == 0)
-        {
-            device_x += L1 * cos(device_rotation);
-            device_y += L1 * sin(device_rotation);
-        }
-        else
-        {
-            device_x += (cos(device_rotation + (L2 - L1) / b) - cos(device_rotation)) * b * (L1 + L2) / (2 * (L2 - L1));
-            device_y += (sin(device_rotation + (L2 - L1) / b) - sin(device_rotation)) * b * (L1 + L2) / (2 * (L2 - L1));
-        }
-        device_rotation += (L2 - L1) / b;
-        needed_rotation = atan2(dest_posx - device_x, dest_posy - device_y);
-        double_t v = (device_rotation - needed_rotation) / (2 * M_PI);
-        if (v >= 1)
-        {
-            v -= 1;
-        }
-        else if (v < 0)
-        {
-            v += 1;
-        }
-        Serial.printf("v: %f, L1: %f, L2: %f", v, L1, L2);
-        if (min(v, 1 - v) < 0.05)
-        {
-            double_t l = sqrt(pow(device_x - dest_posx, 2) + pow(device_y - dest_posy, 2)) * (50 / r * M_PI) * 1920;
-            request_pos(encoder1.getCount() + l, encoder2.getCount() + l);
-        }
-        else if (v < 0.5)
-        {
-            double_t l = v * b * (50 / r) * 1920;
-            request_pos(encoder1.getCount() + l, encoder2.getCount() - l);
-        }
-        else
-        {
-            double_t l = (1 - v) * b * (50 / r) * 1920;
-            request_pos(encoder1.getCount() + l, encoder2.getCount() - l);
-        }
-    }
-}
+// void position_task(void *arg)
+// {
+//     for (;;)
+//     {
+//     }
+// }
 
 void setup_tasks()
 {
     log_i("starting pid task");
     xTaskCreatePinnedToCore(
-        pid_task,        /* Function to implement the task */
+        pid_task_1,      /* Function to implement the task */
         "pid_task",      /* Name of the task */
         5000,            /* Stack size in words */
         NULL,            /* Task input parameter */
@@ -693,7 +636,7 @@ void setup_tasks()
         1);              /* Core where the task should run */
     log_i("starting pid task");
     xTaskCreatePinnedToCore(
-        pid_task2,       /* Function to implement the task */
+        pid_task_2,      /* Function to implement the task */
         "pid_task2",     /* Name of the task */
         5000,            /* Stack size in words */
         NULL,            /* Task input parameter */
@@ -709,15 +652,15 @@ void setup_tasks()
         3,                /* Priority of the task from 0 to 25, higher number = higher priority */
         &PidTaskHandle_3, /* Task handle. */
         1);
-    log_i("starting motion task");
-    xTaskCreatePinnedToCore(
-        position_task,       /* Function to implement the task */
-        "position_task",     /* Name of the task */
-        5000,                /* Stack size in words */
-        NULL,                /* Task input parameter */
-        3,                   /* Priority of the task from 0 to 25, higher number = higher priority */
-        &PositionTaskHandle, /* Task handle. */
-        0);
+    // log_i("starting motion task");
+    // xTaskCreatePinnedToCore(
+    //     position_task,       /* Function to implement the task */
+    //     "position_task",     /* Name of the task */
+    //     5000,                /* Stack size in words */
+    //     NULL,                /* Task input parameter */
+    //     3,                   /* Priority of the task from 0 to 25, higher number = higher priority */
+    //     &PositionTaskHandle, /* Task handle. */
+    //     0);
 }
 
 void setup()
@@ -731,37 +674,37 @@ void setup()
 
     pinMode(PIN_PID_LOOP_1, OUTPUT);
     pinMode(PIN_PID_LOOP_2, OUTPUT);
+    pinMode(PIN_PID_LOOP_3, OUTPUT);
     // pinMode(PIN_LIMIT_SW, INPUT);
-
-    // Motor motor1 = Motor(PIN_ENC_A, PIN_ENC_B);
-    // Motor motor2 = Motor(PIN_ENC_A_2, PIN_ENC_B_2);
 
     ESP32Encoder::useInternalWeakPullResistors = UP;   // Enable the weak pull up resistors
     encoder1.attachFullQuad(PIN_ENC_A_1, PIN_ENC_B_1); // Attache pins for use as encoder pins
     encoder2.attachFullQuad(PIN_ENC_A_2, PIN_ENC_B_2); // Attache pins for use as encoder pins
+    encoder3.attachFullQuad(PIN_ENC_A_3, PIN_ENC_B_3); // Attache pins for use as encoder pins
     encoder1.clearCount();
     encoder2.clearCount();
+    encoder3.clearCount();
 
-    hBridge1.begin(PIN_HBRIDGE_PWM_1, PIN_HBRIDGE_INA_1, PIN_HBRIDGE_INB_1,
-                   PWM_FREQ_HZ, PWM_RES_BITS, PWM_CH_1, PID_MAX_CTRL_VALUE);
-    hBridge2.begin(PIN_HBRIDGE_PWM_2, PIN_HBRIDGE_INA_2, PIN_HBRIDGE_INB_2,
-                   PWM_FREQ_HZ, PWM_RES_BITS, PWM_CH_2, PID_MAX_CTRL_VALUE);
+    motor1.position_pid.set_kp(10.0); // 12
+    motor1.position_pid.set_ki(2.0);
+    motor1.position_pid.set_kd(0.0);
+    motor1.velocity_pid.set_kp(10);
+    motor1.velocity_pid.set_ki(12);
+    motor1.velocity_pid.set_kd(0);
 
-    pid_pos_1.set_kp(10.0); // 12
-    pid_pos_1.set_ki(2.0);
-    pid_pos_1.set_kd(0.000);
+    motor2.position_pid.set_kp(10.0); // 12
+    motor2.position_pid.set_ki(2.0);
+    motor2.position_pid.set_kd(0.0);
+    motor2.velocity_pid.set_kp(10);
+    motor2.velocity_pid.set_ki(12);
+    motor2.velocity_pid.set_kd(0);
 
-    pid_pos_2.set_kp(10.0); // 12
-    pid_pos_2.set_ki(2.0);
-    pid_pos_2.set_kd(0.000);
-
-    pid_vel1.set_kp(10);
-    pid_vel1.set_ki(12);
-    pid_vel1.set_kd(0);
-
-    pid_vel2.set_kp(10);
-    pid_vel2.set_ki(12);
-    pid_vel2.set_kd(0);
+    motor3.position_pid.set_kp(10.0);
+    motor3.position_pid.set_ki(2.0);
+    motor3.position_pid.set_kd(0.0);
+    motor3.velocity_pid.set_kp(10);
+    motor3.velocity_pid.set_ki(12);
+    motor3.velocity_pid.set_kd(0);
 
     setup_spiffs();
     setup_network();
@@ -773,14 +716,13 @@ void loop()
     // Look for and handle WebSocket data
     WebSocket.loop();
     Serial.printf(
-        "req_pos_1: %.2f  req_pos_2: %.2f  \ncurr_pos_1: %.2f  curr_pos_2: %.2f  \nctrl_pos_1: %.2f  ctrl_pos_2: %.2f  \nreq_vel_1: %.2f  req_vel_2: %.2f  curr_vel_1: %.2f curr_vel_2: %.2f ctrl_vel_1: %.2f ctrl_vel_2: %.2f\n\r",
-        req_posx, req_posy, (double)current_pos_1, (double)current_pos_2, ctrl_pos_1, ctrl_pos_2, req_vel_1, req_vel_2, current_vel_1, current_vel_2, ctrl_vel1, ctrl_vel2);
-    Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", pid_pos_1.get_kp(), pid_pos_1.get_ki(), pid_pos_1.get_kd(), pid_pos_1.get_error());
-    Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", pid_pos_2.get_kp(), pid_pos_2.get_ki(), pid_pos_2.get_kd(), pid_pos_2.get_error());
-    Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", pid_vel1.get_kp(), pid_vel1.get_ki(), pid_vel1.get_kd(), pid_vel1.get_error());
-    Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", pid_vel2.get_kp(), pid_vel2.get_ki(), pid_vel2.get_kd(), pid_vel2.get_error());
-    Serial.printf("needed_rot: %f, device_rot: %f, device_x: %f, device_y: %f\n", needed_rotation, device_rotation, device_x, device_y);
-    setDestination(100, 0);
+        "req_pos_1: %.2f  req_pos_2: %.2f  \ncurr_pos_1: %.2f  curr_pos_2: %.2f  \nctrl_pos_1: %.2f  ctrl_pos_2: %.2f  \ncurrent_velocity_1: %.2f current_velocity_2: %.2f ctrl_vel_1: %.2f ctrl_vel_2: %.2f\n\r",
+        req_posx, req_posy, (double_t)motor1.get_position(), (double_t)motor2.get_position(), ctrl_pos_1, ctrl_pos_2, motor1.get_velocity(), motor2.get_velocity(), ctrl_vel1, ctrl_vel2);
+    Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", motor1.position_pid.get_kp(), motor1.position_pid.get_ki(), motor1.position_pid.get_kd(), motor1.position_pid.get_error());
+    Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", motor1.velocity_pid.get_kp(), motor1.velocity_pid.get_ki(), motor1.velocity_pid.get_kd(), motor1.velocity_pid.get_error());
+    Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", motor2.position_pid.get_kp(), motor2.position_pid.get_ki(), motor2.position_pid.get_kd(), motor2.position_pid.get_error());
+    Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", motor2.velocity_pid.get_kp(), motor2.velocity_pid.get_ki(), motor2.velocity_pid.get_kd(), motor2.velocity_pid.get_error());
+    setDestination(0, 0);
 
     vTaskDelay(0.2 * configTICK_RATE_HZ);
 }

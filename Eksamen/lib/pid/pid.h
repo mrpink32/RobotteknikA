@@ -4,20 +4,21 @@
 
 class Pid
 {
-    double min_ctrl_value;
-    double max_ctrl_value;
+    double min_ctrl_value = 0;
+    double max_ctrl_value = 0;
 
-    double dt;
-    double kp;
-    double ki;
-    double kd;
-    double error;
-    double error_sum;
-    double previus_error;
+    double dt = 0;
+    double kp = 0;
+    double ki = 0;
+    double kd = 0;
+    double error = 0;
+    double error_sum = 0;
+    double previous_error = 0;
 
 public:
-    Pid(double dt, double max_ctrl_value);
+    Pid(){};
 
+    void setup(double delta_time, int32_t max_ctrl_value);
     void set_kp(double kp);
     void set_ki(double ki);
     void set_kd(double kd);

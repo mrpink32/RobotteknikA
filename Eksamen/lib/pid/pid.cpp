@@ -1,12 +1,12 @@
 #include "pid.h"
 
-Pid::Pid(double dt, double max_ctrl_value)
+void Pid::setup(double dt, int32_t max_ctrl_value)
 {
     this->dt = dt;
     this->min_ctrl_value = -max_ctrl_value;
     this->max_ctrl_value = max_ctrl_value;
     this->error_sum = 0;
-    this->previus_error = 0;
+    this->previous_error = 0;
 }
 
 void Pid::set_kp(double kp)
@@ -60,9 +60,9 @@ void Pid::update(double set_value, double current_value, double *ctrl_value, dou
 
     kp_val = error;
     ki_val = error_sum * dt;
-    kd_val = (previus_error - error) / dt;
+    kd_val = (previous_error - error) / dt;
 
-    previus_error = error;
+    previous_error = error;
     ctrl = kp * kp_val + ki * ki_val + kd * kd_val;
     *ctrl_value = squash(ctrl);
 }

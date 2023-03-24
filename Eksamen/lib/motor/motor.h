@@ -1,50 +1,32 @@
 #include <pid.h>
 #include <hbridge.h>
 
-class Motor : Pid
+class Motor
 {
 private:
+    int64_t current_position = 0;
+    int64_t current_velocity = 0;
+    // might be better to use integers
+    double_t requested_position = 0;
+    double_t requested_velocity = 0;
+
 public:
-    Motor(/* args */);
+    H_Bridge hbridge;
+    Pid position_pid;
+    Pid velocity_pid;
+
+    Motor(int32_t pin_pwm, int32_t pin_ina, int32_t pin_inb,
+          int32_t freq_hz, int32_t resolution_bit,
+          int32_t pwm_ch, int32_t max_ctrl_value,
+          double delta_time_seconds);
+
     ~Motor();
-};
 
-Motor::Motor(double dt, double max_ctrl_value)
-{
-    Pid pos_pid(dt, max_ctrl_value);
-}
+    void set_position(int32_t current_position);
 
-Motor::~Motor()
-{
-}
+    void set_velocity(int32_t current_velocity);
 
-class Pid
-{
-    double min_ctrl_value;
-    double max_ctrl_value;
+    int32_t get_position();
 
-    double dt;
-    double kp;
-    double ki;
-    double kd;
-    double error;
-    double error_sum;
-    double previous_error;
-
-public:
-    Pid(double dt, double max_ctrl_value);
-
-    void set_kp(double kp);
-    void set_ki(double ki);
-    void set_kd(double kd);
-
-    double get_dt(void);
-
-    double get_kp(void);
-    double get_ki(void);
-    double get_kd(void);
-    double get_error(void) { return error; };
-
-    double squash(double value);
-    void update(double set_value, double current_value, double *ctrl_value, double integration_threshold);
+    int32_t get_velocity();
 };

@@ -11,7 +11,7 @@ public:
   void begin(int32_t pin_pwm, int32_t pin_ina, int32_t pin_inb,
              int32_t freq_hz, int32_t resolution_bit,
              int32_t pwm_ch, int32_t max_ctrl_value);
-             
+
   void break_motor();
 
 private:
