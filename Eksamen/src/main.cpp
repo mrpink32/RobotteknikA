@@ -16,7 +16,6 @@ const char *PASSWORD = "grimgrim";
 
 const char *cmd_toggle = "toggle";
 const char *cmd_led_state = "led_state";
-// const char *cmd_sli = "sli";
 const char *cmd_pid = "pid_";
 const char *cmd_pos = "req_pos";
 const char *cmd_vel = "req_vel";
@@ -34,7 +33,6 @@ TaskHandle_t MotionTaskHandle;
 
 char MsgBuf[32];
 int32_t LedState = 0;
-// int32_t SliderVal = 0;
 // double KpVal = 3.1415;
 // double KiVal = 2.71;
 // double KdVal = 42.0;
@@ -257,7 +255,7 @@ void handle_vel_req(char *command, uint8_t client_num)
     {
         errno = 0;
         char *e;
-        double result = strtol(value + 1, &e, 10);
+        int32_t result = strtol(value + 1, &e, 10);
         Serial.println(result);
         if (*e == '\0' && 0 == errno) // no error
         {
@@ -716,8 +714,8 @@ void loop()
     // Look for and handle WebSocket data
     WebSocket.loop();
     Serial.printf(
-        "req_pos_1: %.2f  req_pos_2: %.2f  \ncurr_pos_1: %.2f  curr_pos_2: %.2f  \nctrl_pos_1: %.2f  ctrl_pos_2: %.2f  \ncurrent_velocity_1: %.2f current_velocity_2: %.2f ctrl_vel_1: %.2f ctrl_vel_2: %.2f\n\r",
-        req_posx, req_posy, (double_t)motor1.get_position(), (double_t)motor2.get_position(), ctrl_pos_1, ctrl_pos_2, motor1.get_velocity(), motor2.get_velocity(), ctrl_vel1, ctrl_vel2);
+        "curr_pos_1: %.2f  curr_pos_2: %.2f  \nctrl_pos_1: %.2f  ctrl_pos_2: %.2f  \ncurrent_velocity_1: %.2f current_velocity_2: %.2f ctrl_vel_1: %.2f ctrl_vel_2: %.2f\n\r",
+        (double_t)motor1.get_position(), (double_t)motor2.get_position(), ctrl_pos_1, ctrl_pos_2, motor1.get_velocity(), motor2.get_velocity(), ctrl_vel1, ctrl_vel2);
     Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", motor1.position_pid.get_kp(), motor1.position_pid.get_ki(), motor1.position_pid.get_kd(), motor1.position_pid.get_error());
     Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", motor1.velocity_pid.get_kp(), motor1.velocity_pid.get_ki(), motor1.velocity_pid.get_kd(), motor1.velocity_pid.get_error());
     Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", motor2.position_pid.get_kp(), motor2.position_pid.get_ki(), motor2.position_pid.get_kd(), motor2.position_pid.get_error());
