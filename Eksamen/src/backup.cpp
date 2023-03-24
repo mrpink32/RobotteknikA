@@ -9,35 +9,30 @@
 #include <motor.h>
 #include <global.h>
 
-// Constants
+/* comment out for router connection */
+#define SOFT_AP
 
-const char *SSID = "grim";
-const char *PASSWORD = "grimgrim";
+/* Constants */
+#ifdef SOFT_AP
+const char *ssid = "grim";
+const char *password = "grimgrim";
+#else
+const char *ssid = "MakitaNG";
+const char *password = "...";
+#endif
+const int32_t wifi_channel = 9; // alle grupper skal have hver sin kanal
+const int32_t dns_port = 53;
+const int32_t http_port = 80;
+const int32_t ws_port = 1337;
 
 const char *cmd_toggle = "toggle";
 const char *cmd_led_state = "led_state";
-// const char *cmd_sli = "sli";
+const char *cmd_sli = "sli";
 const char *cmd_pid = "pid_";
 const char *cmd_pos = "req_pos";
 const char *cmd_vel = "req_vel";
 
-const int32_t WIFI_CHANNEL = 9; // alle grupper skal have hver sin kanal
-const int32_t DNS_PORT = 53;
-const int32_t HTTP_PORT = 80;
-const int32_t WS_PORT = 1337;
-
 // Globals
-
-AsyncWebServer Server(HTTP_PORT);
-WebSocketsServer WebSocket = WebSocketsServer(WS_PORT);
-TaskHandle_t MotionTaskHandle;
-
-char MsgBuf[32];
-int32_t LedState = 0;
-// int32_t SliderVal = 0;
-// double KpVal = 3.1415;
-// double KiVal = 2.71;
-// double KdVal = 42.0;
 
 TaskHandle_t PidTaskHandle1;
 TaskHandle_t PidTaskHandle2;
@@ -91,6 +86,12 @@ double ctrl_vel2;
 double ctrl_vel3;
 
 bool mode_pos = true;
+
+AsyncWebServer Server(http_port);
+WebSocketsServer WebSocket = WebSocketsServer(ws_port);
+char MsgBuf[32];
+int32_t LedState = 0;
+int32_t SliderVal = 0;
 
 /***********************************************************
  * Functions
@@ -152,39 +153,39 @@ void handle_led_state(char *command, uint8_t client_num)
     }
 }
 
-// void handle_slider(char *command, uint8_t client_num)
-// {
-//     char *value = strstr(command, ":");
+void handle_slider(char *command, uint8_t client_num)
+{
+    char *value = strstr(command, ":");
 
-//     if (value == NULL || *value != ':')
-//     {
-//         log_e("[%u]: Bad command %s", client_num, command);
-//         return;
-//     }
+    if (value == NULL || *value != ':')
+    {
+        log_e("[%u]: Bad command %s", client_num, command);
+        return;
+    }
 
-//     if (*(value + 1) == '?')
-//     {
-//         sprintf(MsgBuf, "%s:%d", cmd_sli, SliderVal);
-//         web_socket_send(MsgBuf, client_num, false);
-//     }
-//     else
-//     {
-//         errno = 0;
-//         char *e;
-//         int32_t result = strtol(value + 1, &e, 10);
-//         if (*e == '\0' && 0 == errno) // no error
-//         {
-//             SliderVal = result;
-//             log_i("[%u]: Slidervalue received %d", client_num, SliderVal);
-//         }
-//         else
-//         {
-//             log_e("[%u]: illegal Slidervalue received: %s", client_num, value + 1);
-//         }
-//         sprintf(MsgBuf, "%s:%d", cmd_sli, SliderVal);
-//         web_socket_send(MsgBuf, client_num, true);
-//     }
-// }
+    if (*(value + 1) == '?')
+    {
+        sprintf(MsgBuf, "%s:%d", cmd_sli, SliderVal);
+        web_socket_send(MsgBuf, client_num, false);
+    }
+    else
+    {
+        errno = 0;
+        char *e;
+        int32_t result = strtol(value + 1, &e, 10);
+        if (*e == '\0' && 0 == errno) // no error
+        {
+            SliderVal = result;
+            log_i("[%u]: Slidervalue received %d", client_num, SliderVal);
+        }
+        else
+        {
+            log_e("[%u]: illegal Slidervalue received: %s", client_num, value + 1);
+        }
+        sprintf(MsgBuf, "%s:%d", cmd_sli, SliderVal);
+        web_socket_send(MsgBuf, client_num, true);
+    }
+}
 
 void request_pos(double posx, double posy)
 {
@@ -350,8 +351,8 @@ void handle_command(uint8_t client_num, uint8_t *payload, size_t length)
         handle_toggle(client_num); // Toggle LED
     else if (strncmp(command, cmd_led_state, strlen(cmd_led_state)) == 0)
         handle_led_state(command, client_num); // Report the state of the LED
-    // else if (strncmp(command, cmd_sli, strlen(cmd_sli)) == 0)
-    //     handle_slider(command, client_num); // slider
+    else if (strncmp(command, cmd_sli, strlen(cmd_sli)) == 0)
+        handle_slider(command, client_num); // slider
     else if (strncmp(command, cmd_pid, strlen(cmd_pid)) == 0)
         handle_kx(command, client_num); // pid params
     else if (strncmp(command, cmd_pos, strlen(cmd_pos)) == 0)
@@ -432,6 +433,12 @@ void onJSRequest(AsyncWebServerRequest *request)
     handleRequest(request, "/main.js", "text/javascript");
 }
 
+// Callback: send style sheet
+// void onCSSRequestW3(AsyncWebServerRequest *request)
+// {
+//     handleRequest(request, "/w3.css", "text/css");
+// }
+
 // Callback: send 404 if requested file does not exist
 void onPageNotFound(AsyncWebServerRequest *request)
 {
@@ -453,20 +460,35 @@ void setup_spiffs()
 
 void setup_network()
 {
+#ifdef SOFT_AP
     // Start access point
-    WiFi.softAP(SSID, PASSWORD, WIFI_CHANNEL);
-    log_i("AP running!");
+    WiFi.softAP(ssid, password, wifi_channel); // (alle grupper skal bruge en unik kanal)
+    // Print our IP address
+
+    log_i("AP running");
     log_i("My IP address: ");
     log_i("IP: %s", WiFi.softAPIP().toString().c_str());
     log_i("SSID: %s", WiFi.softAPSSID().c_str());
+#else
+    // connect to local network
+    WiFi.begin(ssid, password);
+    while (WiFi.status() != WL_CONNECTED)
+    {
+        delay(1000);
+        log_i("Establishing connection to WiFi..");
+    }
+    log_i("Connected to network");
+    log_i("IP: %s", WiFi.localIP().toString().c_str());
+    log_i("SSID: %s", WiFi.softAPSSID().c_str());
+#endif
 
     // On HTTP request for root, provide index.html file
     Server.on("/", HTTP_GET, onIndexRequest);
 
-    // On HTTP request for style sheet, provide style.css
+    // On HTTP request for style sheet, provide robot.css
     Server.on("/style.css", HTTP_GET, onCSSRequest);
+    // Server.on("/w3.css", HTTP_GET, onCSSRequestW3);
 
-    // On HTTP request for javascript, provide main.js
     Server.on("/main.js", HTTP_GET, onJSRequest);
 
     // Handle requests for pages that do not exist
@@ -602,23 +624,10 @@ void pid_task_3(void *arg)
     }
 }
 
-// void motion_task(void *arg)
+// void position_task(void *arg)
 // {
-//     HBridge.begin(PIN_MOTOR_CTRL, PIN_MOTOR_INA, PIN_MOTOR_INB,
-//                   PWM_FREQ_HZ, PWM_RES_BITS, PWM_CH);
-
-//     TickType_t xTimeIncrement = configTICK_RATE_HZ / 10;
-//     TickType_t xLastWakeTime = xTaskGetTickCount();
 //     for (;;)
 //     {
-//         log_v("motion_task running...");
-//         int32_t pwm_val = SliderVal;
-//         if (LedState == 0)
-//         {
-//             pwm_val = -pwm_val;
-//         }
-//         HBridge.set_pwm(pwm_val);
-//         vTaskDelayUntil(&xLastWakeTime, xTimeIncrement);
 //     }
 // }
 
@@ -653,8 +662,8 @@ void setup_tasks()
         1);
     // log_i("starting motion task");
     // xTaskCreatePinnedToCore(
-    //     motion_task,       /* Function to implement the task */
-    //     "motion_task",     /* Name of the task */
+    //     position_task,       /* Function to implement the task */
+    //     "position_task",     /* Name of the task */
     //     5000,                /* Stack size in words */
     //     NULL,                /* Task input parameter */
     //     3,                   /* Priority of the task from 0 to 25, higher number = higher priority */
@@ -708,7 +717,6 @@ void setup()
     setup_spiffs();
     setup_network();
     setup_tasks();
-    setDestination(100, 100);
 }
 
 void loop()
@@ -722,6 +730,7 @@ void loop()
     Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", motor1.velocity_pid.get_kp(), motor1.velocity_pid.get_ki(), motor1.velocity_pid.get_kd(), motor1.velocity_pid.get_error());
     Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", motor2.position_pid.get_kp(), motor2.position_pid.get_ki(), motor2.position_pid.get_kd(), motor2.position_pid.get_error());
     Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", motor2.velocity_pid.get_kp(), motor2.velocity_pid.get_ki(), motor2.velocity_pid.get_kd(), motor2.velocity_pid.get_error());
+    setDestination(0, 0);
 
     vTaskDelay(0.2 * configTICK_RATE_HZ);
 }

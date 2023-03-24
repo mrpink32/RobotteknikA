@@ -2,89 +2,32 @@
 <html>
 
 <head>
-    <meta charset="UTF-8" />
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1"> -->
+    <meta charset="utf-8" />
     <title>Control panel</title>
-
-    <style>
-        * {
-            font-family: 'JetBrains Mono', 'Segoe UI', sans-serif;
-        }
-
-        body {
-            background-color: #333333;
-        }
-
-        .grid-container {
-            display: grid;
-            gap: 15px;
-            /* margin: auto; */
-        }
-
-        .grid-item {
-            background-color: #808080;
-            /* margin: auto; */
-        }
-
-        .item1 {
-            grid-column-start: 1;
-            grid-column-end: 2;
-            grid-row-start: 1;
-            grid-row-end: 2;
-        }
-
-        .item2 {
-            grid-column-start: 2;
-            grid-column-end: 3;
-            grid-row-start: 1;
-            grid-row-end: 2;
-        }
-
-        .item3 {
-            grid-column-start: 3;
-            grid-column-end: 4;
-            grid-row-start: 1;
-            grid-row-end: 2;
-        }
-
-        .item4 {
-            grid-column-start: 1;
-            grid-column-end: 4;
-            grid-row-start: 2;
-            grid-row-end: 3;
-        }
-
-        h1,
-        h2 {
-            text-align: center;
-            color: #0DD352;
-        }
-
-        th,
-        td {
-            text-align: left;
-            color: #0DD352;
-        }
-
-        th {
-            column-span: 10;
-        }
-
-        table {
-            /* background-color: aqua; */
-            border-spacing: 0px;
-        }
-
-        input {
-            background-color: #808080;
-            border: none;
-            color: #0DD352;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
+    <script type="text/javascript" src="main.js"></script>
 </head>
 
 <body>
     <header>
         <h1>Control Panel</h1>
+        <table>
+            <tr>
+                <th>Action</th>
+                <th>Status</th>
+            </tr>
+            <tr>
+                <td style="border: none;"><button id="btn_onoff"></button></td>
+                <td style="border: none;"><canvas id="cvs_onoff"></canvas></td>
+            </tr>
+            <!-- <tr>
+                <td>Intensity:<br><input id="inp_slider"></td>
+                <td>
+                    <p id="par_led_intensity"></p>
+                </td>
+            </tr> -->
+        </table>
     </header>
 
     <div class="grid-container">
@@ -92,61 +35,58 @@
             <h2>Motor 1</h2>
             <table>
                 <tr>
-                    <th>Position pid</th>
+                    <th>Position pid:</th>
                 </tr>
                 <tr>
-                    <td>Kp:</td>
-                    <!-- <td>
-                        <div class="writeable" id="inp_kp" contenteditable="true"></div>
-                    </td> -->
+                    <td><label for="inp_kp">Kp:</label></td>
                     <td><input id="inp_kp"></input></td>
                 </tr>
                 <tr>
-                    <td>Ki:</td>
+                    <td><label for="inp_ki">Ki:</label></td>
                     <td><input id="inp_ki"></input></td>
                 </tr>
                 <tr>
-                    <td>Kd:</td>
+                    <td><label for="inp_kd">Kd:</label></td>
                     <td><input id="inp_kd"></input></td>
                 </tr>
                 <tr>
-                    <td>Error:</td>
-                    <td><input id="inp_kd"></input></td>
+                    <td><label for="inp_err">Error:</label></td>
+                    <td><input id="inp_err"></input></td>
                 </tr>
                 <tr>
-                    <td>Prev error:</td>
-                    <td><input id="inp_kd"></input></td>
+                    <td><label for="inp_preverr">Prev error:</label></td>
+                    <td><input id="inp_preverr"></input></td>
                 </tr>
                 <tr>
-                    <td>Position:</td>
-                    <td><input id="inp_kd"></input></td>
+                    <td><label for="inp_pos">Position:</label></td>
+                    <td><input id="inp_pos"></input></td>
                 </tr>
                 <tr>
-                    <th>Velocity pid</th>
+                    <th>Velocity pid:</th>
                 </tr>
                 <tr>
-                    <td>Kp:</td>
+                    <td><label for="inp_kp">Kp:</label></td>
                     <td><input id="inp_kp"></input></td>
                 </tr>
                 <tr>
-                    <td>Ki:</td>
+                    <td><label for="inp_ki">Ki:</label></td>
                     <td><input id="inp_ki"></input></td>
                 </tr>
                 <tr>
-                    <td>Kd:</td>
+                    <td><label for="inp_kd">Kd:</label></td>
                     <td><input id="inp_kd"></input></td>
                 </tr>
                 <tr>
-                    <td>Error:</td>
-                    <td><input id="inp_kd"></input></td>
+                    <td><label for="inp_err">Error:</label></td>
+                    <td><input id="inp_err"></input></td>
                 </tr>
                 <tr>
-                    <td>Prev error:</td>
-                    <td><input id="inp_kd"></input></td>
+                    <td><label for="inp_preverr">Prev error:</label></td>
+                    <td><input id="inp_preverr"></input></td>
                 </tr>
                 <tr>
-                    <td>Velocity:</td>
-                    <td><input id="inp_kd"></input></td>
+                    <td><label for="inp_vel">Velocity:</label></td>
+                    <td><input id="inp_vel"></input></td>
                 </tr>
             </table>
         </div>
@@ -154,58 +94,58 @@
             <h2>Motor 2</h2>
             <table>
                 <tr>
-                    <th>Position pid</th>
+                    <th>Position pid:</th>
                 </tr>
                 <tr>
-                    <td>Kp:</td>
+                    <td><label for="inp_kp">Kp:</label></td>
                     <td><input id="inp_kp"></input></td>
                 </tr>
                 <tr>
-                    <td>Ki:</td>
+                    <td><label for="inp_ki">Ki:</label></td>
                     <td><input id="inp_ki"></input></td>
                 </tr>
                 <tr>
-                    <td>Kd:</td>
+                    <td><label for="inp_kd">Kd:</label></td>
                     <td><input id="inp_kd"></input></td>
                 </tr>
                 <tr>
-                    <td>Error:</td>
-                    <td><input id="inp_kd"></input></td>
+                    <td><label for="inp_err">Error:</label></td>
+                    <td><input id="inp_err"></input></td>
                 </tr>
                 <tr>
-                    <td>Prev error:</td>
-                    <td><input id="inp_kd"></input></td>
+                    <td><label for="inp_preverr">Prev error:</label></td>
+                    <td><input id="inp_preverr"></input></td>
                 </tr>
                 <tr>
-                    <td>Position:</td>
-                    <td><input id="inp_kd"></input></td>
+                    <td><label for="inp_pos">Position:</label></td>
+                    <td><input id="inp_pos"></input></td>
                 </tr>
                 <tr>
-                    <th>Velocity pid</th>
+                    <th>Velocity pid:</th>
                 </tr>
                 <tr>
-                    <td>Kp:</td>
+                    <td><label for="inp_kp">Kp:</label></td>
                     <td><input id="inp_kp"></input></td>
                 </tr>
                 <tr>
-                    <td>Ki:</td>
+                    <td><label for="inp_ki">Ki:</label></td>
                     <td><input id="inp_ki"></input></td>
                 </tr>
                 <tr>
-                    <td>Kd:</td>
+                    <td><label for="inp_kd">Kd:</label></td>
                     <td><input id="inp_kd"></input></td>
                 </tr>
                 <tr>
-                    <td>Error:</td>
-                    <td><input id="inp_kd"></input></td>
+                    <td><label for="inp_err">Error:</label></td>
+                    <td><input id="inp_err"></input></td>
                 </tr>
                 <tr>
-                    <td>Prev error:</td>
-                    <td><input id="inp_kd"></input></td>
+                    <td><label for="inp_preverr">Prev error:</label></td>
+                    <td><input id="inp_preverr"></input></td>
                 </tr>
                 <tr>
-                    <td>Velocity:</td>
-                    <td><input id="inp_kd"></input></td>
+                    <td><label for="inp_vel">Velocity:</label></td>
+                    <td><input id="inp_vel"></input></td>
                 </tr>
             </table>
         </div>
@@ -213,58 +153,58 @@
             <h2>Motor 3</h2>
             <table>
                 <tr>
-                    <th>Position pid</th>
+                    <th>Position pid:</th>
                 </tr>
                 <tr>
-                    <td>Kp:</td>
+                    <td><label for="inp_kp">Kp:</label></td>
                     <td><input id="inp_kp"></input></td>
                 </tr>
                 <tr>
-                    <td>Ki:</td>
+                    <td><label for="inp_ki">Ki:</label></td>
                     <td><input id="inp_ki"></input></td>
                 </tr>
                 <tr>
-                    <td>Kd:</td>
+                    <td><label for="inp_kd">Kd:</label></td>
                     <td><input id="inp_kd"></input></td>
                 </tr>
                 <tr>
-                    <td>Error:</td>
-                    <td><input id="inp_kd"></input></td>
+                    <td><label for="inp_err">Error:</label></td>
+                    <td><input id="inp_err"></input></td>
                 </tr>
                 <tr>
-                    <td>Prev error:</td>
-                    <td><input id="inp_kd"></input></td>
+                    <td><label for="inp_preverr">Prev error:</label></td>
+                    <td><input id="inp_preverr"></input></td>
                 </tr>
                 <tr>
-                    <td>Position:</td>
-                    <td><input id="inp_kd"></input></td>
+                    <td><label for="inp_pos">Position:</label></td>
+                    <td><input id="inp_pos"></input></td>
                 </tr>
                 <tr>
-                    <th>Velocity pid</th>
+                    <th>Velocity pid:</th>
                 </tr>
                 <tr>
-                    <td>Kp:</td>
+                    <td><label for="inp_kp">Kp:</label></td>
                     <td><input id="inp_kp"></input></td>
                 </tr>
                 <tr>
-                    <td>Ki:</td>
+                    <td><label for="inp_ki">Ki:</label></td>
                     <td><input id="inp_ki"></input></td>
                 </tr>
                 <tr>
-                    <td>Kd:</td>
+                    <td><label for="inp_kd">Kd:</label></td>
                     <td><input id="inp_kd"></input></td>
                 </tr>
                 <tr>
-                    <td>Error:</td>
-                    <td><input id="inp_kd"></input></td>
+                    <td><label for="inp_err">Error:</label></td>
+                    <td><input id="inp_err"></input></td>
                 </tr>
                 <tr>
-                    <td>Prev error:</td>
-                    <td><input id="inp_kd"></input></td>
+                    <td><label for="inp_preverr">Prev error:</label></td>
+                    <td><input id="inp_preverr"></input></td>
                 </tr>
                 <tr>
-                    <td>Velocity:</td>
-                    <td><input id="inp_kd"></input></td>
+                    <td><label for="inp_vel">Velocity:</label></td>
+                    <td><input id="inp_vel"></input></td>
                 </tr>
             </table>
         </div>
@@ -272,96 +212,74 @@
             <h2>Global</h2>
             <table>
                 <tr>
-                    <th>Position pid</th>
+                    <th>Position pid:</th>
                 </tr>
                 <tr>
-                    <td>Kp:</td>
+                    <td><button id="btn_set_kp">Set kp</button></td>
                     <td><input id="inp_kp"></input></td>
                 </tr>
                 <tr>
-                    <td>Ki:</td>
+                    <td><button id="btn_set_ki">Set ki</button></td>
                     <td><input id="inp_ki"></input></td>
                 </tr>
                 <tr>
-                    <td>Kd:</td>
+                    <td><button id="btn_set_kd">Set kd</button></td>
                     <td><input id="inp_kd"></input></td>
                 </tr>
-                <tr>
-                    <td>Error:</td>
-                    <td><input id="inp_kd"></input></td>
-                </tr>
-                <tr>
-                    <td>Prev error:</td>
-                    <td><input id="inp_kd"></input></td>
-                </tr>
-                <tr>
-                    <td>Position:</td>
-                    <td><input id="inp_kd"></input></td>
-                </tr>
-                <tr>
-                    <th>Velocity pid</th>
-                </tr>
-                <tr>
-                    <td>Kp:</td>
+                <!-- <tr>
+                    <td><label for="inp_kp">Kp:</label></td>
                     <td><input id="inp_kp"></input></td>
                 </tr>
                 <tr>
-                    <td>Ki:</td>
+                    <td><label for="inp_ki">Ki:</label></td>
                     <td><input id="inp_ki"></input></td>
                 </tr>
                 <tr>
-                    <td>Kd:</td>
+                    <td><label for="inp_kd">Kd:</label></td>
+                    <td><input id="inp_kd"></input></td>
+                </tr> -->
+                <tr>
+                    <td><label for="inp_err">Error:</label></td>
+                    <td><input id="inp_err"></input></td>
+                </tr>
+                <tr>
+                    <td><label for="inp_preverr">Prev error:</label></td>
+                    <td><input id="inp_preverr"></input></td>
+                </tr>
+                <tr>
+                    <td><label for="inp_pos">Position:</label></td>
+                    <td><input id="inp_pos"></input></td>
+                </tr>
+                <tr>
+                    <th>Velocity pid:</th>
+                </tr>
+                <tr>
+                    <td><label for="inp_kp">Kp:</label></td>
+                    <td><input id="inp_kp"></input></td>
+                </tr>
+                <tr>
+                    <td><label for="inp_ki">Ki:</label></td>
+                    <td><input id="inp_ki"></input></td>
+                </tr>
+                <tr>
+                    <td><label for="inp_kd">Kd:</label></td>
                     <td><input id="inp_kd"></input></td>
                 </tr>
                 <tr>
-                    <td>Error:</td>
-                    <td><input id="inp_kd"></input></td>
+                    <td><label for="inp_err">Error:</label></td>
+                    <td><input id="inp_err"></input></td>
                 </tr>
                 <tr>
-                    <td>Prev error:</td>
-                    <td><input id="inp_kd"></input></td>
+                    <td><label for="inp_preverr">Prev error:</label></td>
+                    <td><input id="inp_preverr"></input></td>
                 </tr>
                 <tr>
-                    <td>Velocity:</td>
-                    <td><input id="inp_kd"></input></td>
+                    <td><label for="inp_vel">Velocity:</label></td>
+                    <td><input id="inp_vel"></input></td>
                 </tr>
             </table>
         </div>
     </div>
-
-
-    <table>
-        <tr>
-            <td><button id="btn_onoff"></button></td>
-            <td><canvas id="cvs_onoff"></canvas></td>
-        </tr>
-        <tr>
-            <td>Intensity:<br><input id="inp_slider"></td>
-            <td>
-                <p id="par_led_intensity"></p>
-            </td>
-        </tr>
-        <tr>
-            <td><button id="btn_set_kp">Set kp</button></td>
-            <td><textarea id="inp_kp"></textarea></td>
-        </tr>
-        <tr>
-            <td><button id="btn_set_ki">Set ki</button></td>
-            <td><textarea id="inp_ki"></textarea></td>
-        </tr>
-        <tr>
-            <td><button id="btn_set_kd">Set kd</button></td>
-            <td><textarea id="inp_kd"></textarea></td>
-        </tr>
-        <tr>
-            <td><button id="btn_req_pos">Request position</button></td>
-            <td><textarea id="inp_pos_x"></textarea><textarea id="inp_pos_y"></textarea></td>
-        </tr>
-        <tr>
-            <td><button id="btn_req_vel">Request velocity</button></td>
-            <td><textarea id="inp_vel"></textarea></td>
-        </tr>
-    </table>
 </body>
 
 </html>

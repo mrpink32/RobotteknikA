@@ -28,8 +28,8 @@
      inkscape:document-units="px"
      showgrid="true"
      inkscape:zoom="0.35355339"
-     inkscape:cx="859.84184"
-     inkscape:cy="1175.2115"
+     inkscape:cx="859.84185"
+     inkscape:cy="1178.0399"
      inkscape:window-width="1444"
      inkscape:window-height="1080"
      inkscape:window-x="0"
@@ -157,9 +157,9 @@
        style="font-size:45.5183px;white-space:pre;shape-inside:url(#rect313);display:inline;fill:#008000"><tspan
          x="198.77344"
          y="304.97456"
-         id="tspan2183"><tspan
+         id="tspan396"><tspan
            style="font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00"
-           id="tspan2181">Motor 1</tspan></tspan></text>
+           id="tspan394">Motor 1</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.42380705,0,0,0.56066601,128.65758,-86.033941)"
@@ -167,9 +167,9 @@
        style="font-size:46.3175px;white-space:pre;shape-inside:url(#rect473);display:inline;fill:#008000"><tspan
          x="198.77344"
          y="305.70174"
-         id="tspan2187"><tspan
+         id="tspan400"><tspan
            style="font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00"
-           id="tspan2185">Motor 2</tspan></tspan></text>
+           id="tspan398">Motor 2</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.42380705,0,0,0.56066601,281.75881,-86.033941)"
@@ -177,9 +177,9 @@
        style="font-size:46.3175px;white-space:pre;shape-inside:url(#rect479);display:inline;fill:#008000"><tspan
          x="198.77344"
          y="305.70174"
-         id="tspan2191"><tspan
+         id="tspan404"><tspan
            style="font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00"
-           id="tspan2189">Motor 3</tspan></tspan></text>
+           id="tspan402">Motor 3</tspan></tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
@@ -593,13 +593,13 @@
        xml:space="preserve"
        style="font-size:25.4px;fill:#008000;stroke-width:0.267754"
        x="173.51004"
-       y="357.32578"
+       y="357.32678"
        id="text1079"
        transform="scale(0.99741252,1.0025942)"><tspan
          id="tspan1077"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:25.4px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.267754"
          x="173.51004"
-         y="357.32578"
+         y="357.32678"
          sodipodi:role="line">Control Panel</tspan></text>
     <rect
        style="fill:#808080;stroke-width:0.55088"
@@ -610,14 +610,14 @@
        y="370.41669" />
     <text
        xml:space="preserve"
-       transform="matrix(0.42380705,0,0,0.58052679,128.68197,225.8899)"
+       transform="matrix(0.42380705,0,0,0.58052679,128.68197,225.89026)"
        id="text1089"
        style="font-size:45.5183px;white-space:pre;shape-inside:url(#rect1245);display:inline;fill:#008000"><tspan
          x="198.77344"
          y="304.97456"
-         id="tspan2195"><tspan
+         id="tspan408"><tspan
            style="font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00"
-           id="tspan2193">Motor 1</tspan></tspan></text>
+           id="tspan406">Motor 1</tspan></tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
@@ -699,57 +699,57 @@
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
        x="38.729355"
-       y="516.63245"
+       y="516.63324"
        id="text1129"><tspan
          sodipodi:role="line"
          id="tspan1127"
          style="font-size:9.87778px;stroke-width:0.264583"
          x="38.729355"
-         y="516.63245">kp: 0</tspan></text>
+         y="516.63324">kp: 0</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
        x="38.729355"
-       y="530.22711"
+       y="530.22888"
        id="text1133"><tspan
          sodipodi:role="line"
          id="tspan1131"
          style="font-size:9.87778px;stroke-width:0.264583"
          x="38.729355"
-         y="530.22711">ki: 0</tspan></text>
+         y="530.22888">ki: 0</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
        x="38.729355"
-       y="543.09082"
+       y="543.09369"
        id="text1137"><tspan
          sodipodi:role="line"
          id="tspan1135"
          style="font-size:9.87778px;stroke-width:0.264583"
          x="38.729355"
-         y="543.09082">kd: 0</tspan></text>
+         y="543.09369">kd: 0</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
        x="38.857765"
-       y="556.31995"
+       y="556.32281"
        id="text1141"><tspan
          sodipodi:role="line"
          id="tspan1139"
          style="font-size:9.87778px;stroke-width:0.264583"
          x="38.857765"
-         y="556.31995">error: 0</tspan></text>
+         y="556.32281">error: 0</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87777px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono';fill:#00ff00;stroke-width:0.264583"
        x="38.778744"
-       y="569.54913"
+       y="569.552"
        id="text1145"><tspan
          sodipodi:role="line"
          id="tspan1143"
          style="stroke-width:0.264583"
          x="38.778744"
-         y="569.54913">prev error: 0</tspan></text>
+         y="569.552">prev error: 0</tspan></text>
     <circle
        style="fill:#000000;stroke-width:0.268397"
        id="circle1243"
@@ -789,13 +789,13 @@
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87777px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;stroke-width:0.264583"
        x="298.02145"
-       y="550.07086"
+       y="550.07373"
        id="text1571"><tspan
          sodipodi:role="line"
          id="tspan1569"
-         style="stroke-width:0.264583;fill:#000000"
+         style="fill:#000000;stroke-width:0.264583"
          x="298.02145"
-         y="550.07086">time</tspan></text>
+         y="550.07373">time</tspan></text>
     <rect
        style="fill:#ececec;stroke-width:0.295244"
        id="rect1753"
@@ -805,7 +805,7 @@
        y="444.5" />
     <path
        style="fill:#ff0000;stroke-width:0.264583"
-       d="m 219.27251,536.61161 6.33576,-6.33576 8.81498,-3.3056 h 13.7734 19.0073 l 13.49793,2.75465 22.58835,-0.8264 23.69026,0.8264 h 33.88257 l 16.80353,1.37735 20.38464,-0.8264 13.22247,1.10188 2.4792,1.37734 2.96584,4.34806 H 218.28132 Z"
+       d="m 219.27251,536.61202 6.33576,-6.33578 8.81498,-3.30561 h 13.7734 19.0073 l 13.49793,2.75464 22.58835,-0.82642 23.69026,0.82642 h 33.88257 l 16.80353,1.37734 20.38464,-0.82642 13.22247,1.1019 2.4792,1.37735 2.96584,4.34807 H 218.28132 Z"
        id="path1863" />
   </g>
 </svg>
