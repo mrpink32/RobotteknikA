@@ -55,6 +55,8 @@
 const Cmd_Toggle = "toggle";
 const Cmd_LedState = "led_state";
 // const Cmd_Slider = "sli";
+const Cmd_Pos = "req_pos";
+const Cmd_Vel = "req_vel";
 
 
 // system vars
@@ -66,9 +68,10 @@ var ctx_onoff;          // Context to draw robot on off state on
 // pid subsystem vars 
 var btn_set_kx = [];    // Array of Buttons that When clicked submits kx value to robot
 var inp_kx = [];        // Array of TextAreas where user can enter kx value
-var btn_req_pos;
-var inp_req_pos;
-var btn_req_vel;
+// var btn_req_pos;
+// var inp_pos = [];       // Array of Inputs to change and display motor positions
+var inp_pos_1;
+// var btn_req_vel;
 var inp_req_vel;
 
 
@@ -126,6 +129,9 @@ function init() {
         btn_set_kx[v].onclick = function (evt) { console.log(evt); onclick_btn_set_kx(v); }
     }
 
+    inp_pos_1 = document.getElementById("inp_pos_1");
+    inp_pos_1.value = "0";
+
     // Draw circle in cvs_onoff
     ctx_onoff = cvs_onoff.getContext("2d");
     ctx_onoff.arc(25, 25, 15, 0, Math.PI * 2, false);
@@ -163,7 +169,7 @@ function onclick_btn_set_kx(parm) {
 
 function onclick_btn_req_pos() {
     console.log("onclick:  grim")
-    var value = inp_req_pos.value;
+    var value = inp_pos_1.value;
     var cmd = `req_pos:${value}`;
     doSend(cmd);
 }
@@ -214,8 +220,8 @@ function onOpen(evt) {
     btn_set_ki.disabled = false;
     btn_set_kd.disabled = false;
     // inp_slider.disabled = false;
-    btn_req_pos.disabled = false;
-    btn_req_vel.disabled = false;
+    // btn_req_pos.disabled = false;
+    // btn_req_vel.disabled = false;
 
     // Get the current state of gui
     request_all_data();
@@ -236,8 +242,8 @@ function onClose(evt) {
     btn_set_ki.disabled = true;
     btn_set_kd.disabled = true;
     // inp_slider.disabled = true;
-    btn_req_pos.disabled = true;
-    btn_req_vel.disabled = true;
+    // btn_req_pos.disabled = true;
+    // btn_req_vel.disabled = true;
 
 
     // Try to reconnect after a few seconds
@@ -296,7 +302,7 @@ function onMessage(evt) {
             break;
         case "req_pos":
             console.log(`pos value received: ${value}`);
-            inp_req_pos.innerHTML = value;
+            inp_pos_1.value = value;
             break;
         case "req_vel":
             console.log(`vel value received: ${value}`);

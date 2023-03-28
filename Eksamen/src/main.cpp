@@ -8,6 +8,7 @@
 #include <Arduino.h>
 #include <motor.h>
 #include <global.h>
+using namespace std;
 
 // Constants
 
@@ -208,7 +209,11 @@ void handle_pos_req(char *command, uint8_t client_num)
 
     if (*(value + 1) == '?')
     {
-        sprintf(MsgBuf, "%s:%d", cmd_pos, encoder1.getCount());
+        int32_t data_1 = encoder1.getCount();
+        int32_t data_2 = encoder2.getCount();
+        int32_t data_3 = encoder3.getCount();
+        string packet = to_string(data_1) + "," + to_string(data_2) + "," + to_string(data_3);
+        sprintf(MsgBuf, "%s:%d", cmd_pos, packet.c_str());
         web_socket_send(MsgBuf, client_num, false);
     }
     else
@@ -348,8 +353,6 @@ void handle_command(uint8_t client_num, uint8_t *payload, size_t length)
         handle_toggle(client_num); // Toggle LED
     else if (strncmp(command, cmd_led_state, strlen(cmd_led_state)) == 0)
         handle_led_state(command, client_num); // Report the state of the LED
-    // else if (strncmp(command, cmd_sli, strlen(cmd_sli)) == 0)
-    //     handle_slider(command, client_num); // slider
     else if (strncmp(command, cmd_pid, strlen(cmd_pid)) == 0)
         handle_kx(command, client_num); // pid params
     else if (strncmp(command, cmd_pos, strlen(cmd_pos)) == 0)
