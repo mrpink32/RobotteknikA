@@ -54,7 +54,6 @@
 // constans
 const Cmd_Toggle = "toggle";
 const Cmd_LedState = "led_state";
-// const Cmd_Slider = "sli";
 const Cmd_Pos = "req_pos";
 const Cmd_Vel = "req_vel";
 
@@ -68,11 +67,8 @@ var ctx_onoff;          // Context to draw robot on off state on
 // pid subsystem vars 
 var btn_set_kx = [];    // Array of Buttons that When clicked submits kx value to robot
 var inp_kx = [];        // Array of TextAreas where user can enter kx value
-// var btn_req_pos;
-// var inp_pos = [];       // Array of Inputs to change and display motor positions
-var inp_pos_1;
-// var btn_req_vel;
-var inp_req_vel;
+var inp_pos = [];       // Array of Inputs to change and display motor positions
+var inp_vel = [];       // Array of Inputs to change and display motor velocities
 
 
 function get_url() {
@@ -105,18 +101,6 @@ function init() {
     cvs_onoff.width = 50;
     cvs_onoff.height = 50;
 
-    // par_led_intensity = document.getElementById("par_led_intensity");
-    // par_led_intensity.innerHTML = "0";
-
-    // inp_slider = document.getElementById("inp_slider");
-    // inp_slider.type = "range";
-    // inp_slider.classList.add("slider");    // instead of class="slider" in html tag
-    // inp_slider.onchange = onchange_inp_slider;
-    // inp_slider.step = 0.001;
-    // inp_slider.min = 0;
-    // inp_slider.max = 1;
-    // inp_slider.value = 0;
-
     const parameters = ["kp", "ki", "kd"];
     for (const p in parameters) {
         let v = parameters[p] // important to use let
@@ -126,11 +110,20 @@ function init() {
         inp_kx[v].innerHTML = "0";
         btn_set_kx[v] = document.getElementById(`btn_set_${v}`);
         btn_set_kx[v].disabled = false;
-        btn_set_kx[v].onclick = function (evt) { console.log(evt); onclick_btn_set_kx(v); }
+        btn_set_kx[v].onclick = function (event) { console.log(event); onclick_btn_set_kx(v); }
     }
 
-    inp_pos_1 = document.getElementById("inp_pos_1");
-    inp_pos_1.value = "0";
+    for (let i = 0; i < 4; i++) {
+        inp_pos[i] = document.getElementById(`inp_pos_${i + 1}`);
+        inp_pos[i].value = "0";
+        inp_pos[i].onchange = function (event) { console.log(event); onsubmit_inp_set_pos(i); }
+    }
+
+    for (let i = 1; i < 5; i++) {
+        inp_vel[i] = document.getElementById(`inp_vel_${i}`);
+        inp_vel[i].value = "0";
+        inp_vel[i].onchange = function (event) { console.log(event); onsubmit_inp_set_vel(i); }
+    }
 
     // Draw circle in cvs_onoff
     ctx_onoff = cvs_onoff.getContext("2d");
@@ -145,19 +138,10 @@ function init() {
     wsConnect(url);
 }
 
-
 // Called whenever the HTML button is pressed
 function onclick_btn_onoff() {
     doSend(Cmd_Toggle);
 }
-
-// Called whenever slider change
-// function onchange_inp_slider() {
-//     var value = inp_slider.value;
-//     par_led_intensity.innerHTML = value;
-//     var cmd = `sli:${value}`;
-//     doSend(cmd);
-// }
 
 // Called whenever a set kp, ki or kd button is pressed    
 function onclick_btn_set_kx(parm) {
@@ -167,23 +151,22 @@ function onclick_btn_set_kx(parm) {
     doSend(cmd);
 }
 
-function onclick_btn_req_pos() {
-    console.log("onclick:  grim")
-    var value = inp_pos_1.value;
-    var cmd = `req_pos:${value}`;
+function onsubmit_inp_set_pos(index) {
+    console.log("onsubmit: position from `${index}`")
+    var value = inp_pos[index].value;
+    var cmd = `req_pos:${value},${index},`;
     doSend(cmd);
 }
 
-function onclick_btn_req_vel() {
+function onsubmit_inp_set_vel(index) {
     console.log("onclick:  grim")
-    var value = inp_req_vel.value;
+    var value = inp_vel[index].value;
     var cmd = `req_vel:${value}`;
     doSend(cmd);
 }
 
 function request_all_data() {
     doSend(Cmd_LedState + ":?");
-    // doSend(Cmd_Slider + ":?");
     doSend("pid_kp:?");
     doSend("pid_ki:?");
     doSend("pid_kd:?");
@@ -202,14 +185,14 @@ function wsConnect(url) {
     websocket = new WebSocket(url);
 
     // Assign callbacks
-    websocket.onopen = function (evt) { onOpen(evt) };
-    websocket.onclose = function (evt) { onClose(evt) };
-    websocket.onmessage = function (evt) { onMessage(evt) };
-    websocket.onerror = function (evt) { onError(evt) };
+    websocket.onopen = function (event) { onOpen(event) };
+    websocket.onclose = function (event) { onClose(event) };
+    websocket.onmessage = function (event) { onMessage(event) };
+    websocket.onerror = function (event) { onError(event) };
 }
 
 // Called when a WebSocket connection is established with the server
-function onOpen(evt) {
+function onOpen(event) {
 
     // Log connection state
     console.log("Connected");
@@ -219,9 +202,6 @@ function onOpen(evt) {
     btn_set_kp.disabled = false;
     btn_set_ki.disabled = false;
     btn_set_kd.disabled = false;
-    // inp_slider.disabled = false;
-    // btn_req_pos.disabled = false;
-    // btn_req_vel.disabled = false;
 
     // Get the current state of gui
     request_all_data();
@@ -231,7 +211,7 @@ function onOpen(evt) {
 }
 
 // Called when the WebSocket connection is closed
-function onClose(evt) {
+function onClose(event) {
 
     // Log disconnection state
     console.log("Disconnected");
@@ -241,31 +221,43 @@ function onClose(evt) {
     btn_set_kp.disabled = true;
     btn_set_ki.disabled = true;
     btn_set_kd.disabled = true;
-    // inp_slider.disabled = true;
-    // btn_req_pos.disabled = true;
-    // btn_req_vel.disabled = true;
-
 
     // Try to reconnect after a few seconds
     setTimeout(function () { url = get_url(); wsConnect(url) }, 2000);
 }
 
 // Called when a message is received from the server
-function onMessage(evt) {
+function onMessage(event) {
 
     // Print out our received message
-    console.log("Received: " + evt.data);
+    console.log("Received: " + event.data);
 
-    let idx = evt.data.search(':')
+    let idx = event.data.search(':')
 
     let command, value;
+    var values = [];
 
-    if (-1 == idx) { // no : in data
-        command = evt.data;
+    if (idx == -1) { // no : in data
+        command = event.data;
         value = "";
     } else {
-        command = evt.data.slice(0, idx);
-        value = evt.data.slice(idx + 1);
+        command = event.data.slice(0, idx);
+        value = event.data.slice(idx + 1);
+
+        if (command == Cmd_Pos || command == Cmd_Vel) {
+            let last_split = idx;
+            let split = 0;
+            while (true) {
+                split = event.data.indexOf(',', last_split + 1);
+                // console.log("split: ", split)
+                if (split == -1) {
+                    break;
+                }
+                values.push(event.data.slice(last_split + 1, split));
+                last_split = event.data.indexOf(',', split);
+                // console.log("last_split: ", last_split);
+            }
+        }
     }
 
     // Update circle graphic with LED state
@@ -283,11 +275,6 @@ function onMessage(evt) {
                 turn_off()
             }
             break;
-        // case "sli":
-        //     console.log(`Slider value received: ${value}`);
-        //     inp_slider.value = value;
-        //     par_led_intensity.innerHTML = value;
-        //     break;
         case "pid_kp":
             console.log(`kp value received: ${value}`);
             inp_kx["kp"].value = value;
@@ -300,22 +287,34 @@ function onMessage(evt) {
             console.log(`kd value received: ${value}`);
             inp_kx["kd"].value = value;
             break;
-        case "req_pos":
-            console.log(`pos value received: ${value}`);
-            inp_pos_1.value = value;
+        case "req_pos": {
+            console.log("Positions data:");
+            let length = values.length;
+            console.log(`values array has size: ${length} and contains: ${values}`)
+            for (let i = 0; i < length; i++) {
+                console.log(`position values received: ${values[i]}`);
+                inp_pos[i].value = values[i];
+            }
             break;
-        case "req_vel":
-            console.log(`vel value received: ${value}`);
-            inp_req_vel.innerHTML = value;
+        }
+        case "req_vel": {
+            console.log("Velocity data:");
+            let length = values.length;
+            console.log(`values array has size: ${length} and contains: ${values}`)
+            for (let i = 0; i < length; i++) {
+                console.log(`velocity values received: ${values[i]}`);
+                inp_pos[i].value = values[i];
+            }
             break;
+        }
         default:
             break;
     }
 }
 
 // Called when a WebSocket error occurs
-function onError(evt) {
-    console.log("ERROR: " + evt.data);
+function onError(event) {
+    console.log("ERROR: " + event.data);
 }
 
 // Sends a message to the server (and prints it to the console)

@@ -151,54 +151,9 @@ void handle_led_state(char *command, uint8_t client_num)
     }
 }
 
-// void handle_slider(char *command, uint8_t client_num)
-// {
-//     char *value = strstr(command, ":");
-
-//     if (value == NULL || *value != ':')
-//     {
-//         log_e("[%u]: Bad command %s", client_num, command);
-//         return;
-//     }
-
-//     if (*(value + 1) == '?')
-//     {
-//         sprintf(MsgBuf, "%s:%d", cmd_sli, SliderVal);
-//         web_socket_send(MsgBuf, client_num, false);
-//     }
-//     else
-//     {
-//         errno = 0;
-//         char *e;
-//         int32_t result = strtol(value + 1, &e, 10);
-//         if (*e == '\0' && 0 == errno) // no error
-//         {
-//             SliderVal = result;
-//             log_i("[%u]: Slidervalue received %d", client_num, SliderVal);
-//         }
-//         else
-//         {
-//             log_e("[%u]: illegal Slidervalue received: %s", client_num, value + 1);
-//         }
-//         sprintf(MsgBuf, "%s:%d", cmd_sli, SliderVal);
-//         web_socket_send(MsgBuf, client_num, true);
-//     }
-// }
-
-void request_pos(double posx, double posy)
-{
-    req_posx = posx;
-    req_posy = posy;
-}
-
-void setDestination(double posx, double posy)
-{
-    dest_posx = posx;
-    dest_posy = posy;
-}
-
 void handle_pos_req(char *command, uint8_t client_num)
 {
+    //
     char *value = strstr(command, ":");
 
     if (value == NULL || *value != ':')
@@ -209,35 +164,36 @@ void handle_pos_req(char *command, uint8_t client_num)
 
     if (*(value + 1) == '?')
     {
-        int32_t data_1 = encoder1.getCount();
-        int32_t data_2 = encoder2.getCount();
-        int32_t data_3 = encoder3.getCount();
-        string packet = to_string(data_1) + "," + to_string(data_2) + "," + to_string(data_3);
-        sprintf(MsgBuf, "%s:%d", cmd_pos, packet.c_str());
+        int32_t data_1 = motor1.get_position();
+        int32_t data_2 = motor2.get_position();
+        int32_t data_3 = motor3.get_position();
+        sprintf(MsgBuf, "%s:%d,%d,%d,", cmd_pos, data_1, data_2, data_3);
         web_socket_send(MsgBuf, client_num, false);
     }
     else
     {
         char *e;
         std::string val = value;
+        Serial.printf("%s", val);
         std::string command = command;
+        Serial.printf("%s", command);
         std::string result1 = command.substr(val.size(), command.find(","));
         std::string result2 = command.substr(command.find(","), command.size());
         Serial.printf("%s, %s\n", result1, result2);
         if (*e == '\0' && 0 == errno) // no error
         {
-            setDestination(0, 0);
-            sprintf(MsgBuf, "%s:%f", cmd_pos, encoder1.getCount());
+
+            int32_t data_1 = motor1.get_position();
+            int32_t data_2 = motor2.get_position();
+            int32_t data_3 = motor3.get_position();
+            sprintf(MsgBuf, "%s:%d,%d,%d,", cmd_pos, data_1, data_2, data_3);
+            // sprintf(MsgBuf, "%s:%d,%d,%d,", cmd_pos);
             web_socket_send(MsgBuf, client_num, true);
         }
         else
         {
             log_e("[%u]: illegal Slidervalue received: %s", client_num, value + 1);
         }
-        Serial.println(encoder1.getCount());
-        Serial.println(encoder2.getCount());
-        // sprintf(MsgBuf, "%s:%d", cmd_pos, &req_pos);
-        // web_socket_send(MsgBuf, client_num, true);
     }
 }
 
@@ -253,7 +209,10 @@ void handle_vel_req(char *command, uint8_t client_num)
 
     if (*(value + 1) == '?')
     {
-        sprintf(MsgBuf, "%s:%d", cmd_vel, max_vel);
+        int32_t data_1 = motor1.get_velocity();
+        int32_t data_2 = motor2.get_velocity();
+        int32_t data_3 = motor3.get_velocity();
+        sprintf(MsgBuf, "%s:%d,%d,%d,", cmd_vel, data_1, data_2, data_3);
         web_socket_send(MsgBuf, client_num, false);
     }
     else
@@ -574,10 +533,10 @@ void pid_task_2(void *arg)
 
 void pid_task_3(void *arg)
 {
-    motor3.set_position(encoder2.getCount());
-    int64_t prev_pos = motor3.get_position();
     TickType_t xTimeIncrement = configTICK_RATE_HZ * DT_S;
     TickType_t xLastWakeTime = xTaskGetTickCount();
+    motor3.set_position(encoder3.getCount());
+    int64_t prev_pos = motor3.get_position();
     for (;;)
     { // loop tager mindre end 18us * 2
         double_t req_vel = 0;
@@ -602,6 +561,37 @@ void pid_task_3(void *arg)
         vTaskDelayUntil(&xLastWakeTime, xTimeIncrement);
     }
 }
+
+// void pid_task(void *arg)
+// {
+//     TickType_t xTimeIncrement = configTICK_RATE_HZ * DT_S;
+//     TickType_t xLastWakeTime = xTaskGetTickCount();
+//     motor3.set_position(encoder3.getCount());
+//     int64_t prev_pos = motor3.get_position();
+//     for (;;)
+//     { // loop tager mindre end 18us * 2
+//         double_t req_vel = 0;
+//         digitalWrite(PIN_PID_LOOP_3, HIGH);
+
+//         motor3.set_position(encoder3.getCount());
+//         motor3.set_velocity((motor3.get_position() - prev_pos) / DT_S);
+
+//         if (mode_pos)
+//         {
+//             motor3.position_pid.update(req_posy, motor3.get_position(), &ctrl_pos_3, integration_threshold);
+
+//             req_vel = constrain(ctrl_pos_3, -max_vel, max_vel);
+//         }
+
+//         motor3.velocity_pid.update(req_vel, motor3.get_velocity(), &ctrl_vel3, integration_threshold);
+
+//         motor3.hbridge.set_pwm(ctrl_vel3);
+
+//         prev_pos = motor3.get_position();
+//         digitalWrite(PIN_PID_LOOP_3, LOW);
+//         vTaskDelayUntil(&xLastWakeTime, xTimeIncrement);
+//     }
+// }
 
 // void motion_task(void *arg)
 // {
@@ -709,20 +699,20 @@ void setup()
     setup_spiffs();
     setup_network();
     setup_tasks();
-    setDestination(100, 100);
+    // setDestination(100, 100);
 }
 
 void loop()
 {
     // Look for and handle WebSocket data
     WebSocket.loop();
-    Serial.printf(
-        "curr_pos_1: %.2f  curr_pos_2: %.2f  \nctrl_pos_1: %.2f  ctrl_pos_2: %.2f  \ncurrent_velocity_1: %.2f current_velocity_2: %.2f ctrl_vel_1: %.2f ctrl_vel_2: %.2f\n\r",
-        (double_t)motor1.get_position(), (double_t)motor2.get_position(), ctrl_pos_1, ctrl_pos_2, motor1.get_velocity(), motor2.get_velocity(), ctrl_vel1, ctrl_vel2);
-    Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", motor1.position_pid.get_kp(), motor1.position_pid.get_ki(), motor1.position_pid.get_kd(), motor1.position_pid.get_error());
-    Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", motor1.velocity_pid.get_kp(), motor1.velocity_pid.get_ki(), motor1.velocity_pid.get_kd(), motor1.velocity_pid.get_error());
-    Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", motor2.position_pid.get_kp(), motor2.position_pid.get_ki(), motor2.position_pid.get_kd(), motor2.position_pid.get_error());
-    Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", motor2.velocity_pid.get_kp(), motor2.velocity_pid.get_ki(), motor2.velocity_pid.get_kd(), motor2.velocity_pid.get_error());
+    // Serial.printf(
+    //     "curr_pos_1: %.2f  curr_pos_2: %.2f  \nctrl_pos_1: %.2f  ctrl_pos_2: %.2f  \ncurrent_velocity_1: %.2f current_velocity_2: %.2f ctrl_vel_1: %.2f ctrl_vel_2: %.2f\n\r",
+    //     (double_t)motor1.get_position(), (double_t)motor2.get_position(), ctrl_pos_1, ctrl_pos_2, motor1.get_velocity(), motor2.get_velocity(), ctrl_vel1, ctrl_vel2);
+    // Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", motor1.position_pid.get_kp(), motor1.position_pid.get_ki(), motor1.position_pid.get_kd(), motor1.position_pid.get_error());
+    // Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", motor1.velocity_pid.get_kp(), motor1.velocity_pid.get_ki(), motor1.velocity_pid.get_kd(), motor1.velocity_pid.get_error());
+    // Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", motor2.position_pid.get_kp(), motor2.position_pid.get_ki(), motor2.position_pid.get_kd(), motor2.position_pid.get_error());
+    // Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", motor2.velocity_pid.get_kp(), motor2.velocity_pid.get_ki(), motor2.velocity_pid.get_kd(), motor2.velocity_pid.get_error());
 
     vTaskDelay(0.2 * configTICK_RATE_HZ);
 }
