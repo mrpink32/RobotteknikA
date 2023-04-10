@@ -44,50 +44,61 @@ mod robot {
                 }
             }
 
-            // pub fn set_kp(&mut self, kp: f64) {
-            //     self.kp = kp;
-            // }
             #[no_mangle]
             pub extern "C" fn set_kp(&mut self, kp: f64) {
                 self.kp = kp;
             }
 
-            // pub fn set_ki(&mut self, ki: f64) {
-            //     self.ki = ki;
-            // }
             #[no_mangle]
             pub extern "C" fn set_ki(&mut self, ki: f64) {
                 self.ki = ki;
             }
 
-            pub fn set_kd(&mut self, kd: f64) {
+            #[no_mangle]
+            pub extern "C" fn set_kd(&mut self, kd: f64) {
                 self.kd = kd;
             }
-            pub fn get_delta_time(&self) -> f64 {
+
+            #[no_mangle]
+            pub extern "C" fn get_delta_time(&self) -> f64 {
                 self.delta_time
             }
-            pub fn get_min_ctrl_value(&self) -> f64 {
+
+            #[no_mangle]
+            pub extern "C" fn get_min_ctrl_value(&self) -> f64 {
                 self.min_ctrl_value
             }
-            pub fn get_max_ctrl_value(&self) -> f64 {
+
+            #[no_mangle]
+            pub extern "C" fn get_max_ctrl_value(&self) -> f64 {
                 self.max_ctrl_value
             }
-            pub fn get_kp(&self) -> f64 {
+
+            #[no_mangle]
+            pub extern "C" fn get_kp(&self) -> f64 {
                 self.kp
             }
-            pub fn get_ki(&self) -> f64 {
+
+            #[no_mangle]
+            pub extern "C" fn get_ki(&self) -> f64 {
                 self.ki
             }
-            pub fn get_kd(&self) -> f64 {
+
+            #[no_mangle]
+            pub extern "C" fn get_kd(&self) -> f64 {
                 self.kd
             }
-            pub fn get_error(&self) -> f64 {
+
+            #[no_mangle]
+            pub extern "C" fn get_error(&self) -> f64 {
                 self.error
             }
+
             /// Returns the value if it is between the min_ctrl_value and the max_ctrl_value of the pid.
             /// If lower returns min_ctrl_value of the pid, if higher returns max_ctrl_value of the pid.
             /// Panics if the value is None.
-            pub fn squash(&self, value: f64) -> f64 {
+            #[no_mangle]
+            pub extern "C" fn squash(&self, value: f64) -> f64 {
                 let value = match Some(value) {
                     Some(_) if value < self.min_ctrl_value => self.min_ctrl_value,
                     Some(_) if value > self.max_ctrl_value => self.max_ctrl_value,
@@ -96,7 +107,9 @@ mod robot {
                 };
                 value
             }
-            pub fn update(
+
+            #[no_mangle]
+            pub extern "C" fn update(
                 &mut self,
                 set_value: f64,
                 current_value: f64,
@@ -143,12 +156,3 @@ mod robot {
     //     }
     // }
 }
-
-// use robot::{h_bridge::HBridge, pid::Pid};
-// #[test]
-// fn it_works() {
-//     let mut pid: Pid = Pid::new(1.0, 1.0, None);
-//     pid.set_kp(10.0);
-//     assert_eq!(pid.get_kp(), 10.0);
-//     assert_eq!(pid.squash(10.0), pid.get_max_ctrl_value());
-// }
