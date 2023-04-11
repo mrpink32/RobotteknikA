@@ -56,6 +56,7 @@ const Cmd_Toggle = "toggle";
 const Cmd_LedState = "led_state";
 const Cmd_Pos = "req_pos";
 const Cmd_Vel = "req_vel";
+const Cmd_Err = "req_err";
 
 
 // system vars
@@ -67,6 +68,8 @@ var ctx_onoff;          // Context to draw robot on off state on
 // pid subsystem vars 
 var btn_set_kx = [];    // Array of Buttons that When clicked submits kx value to robot
 var inp_kx = [];        // Array of TextAreas where user can enter kx value
+
+var inp_err = [];   
 var inp_pos = [];       // Array of Inputs to change and display motor positions
 var inp_vel = [];       // Array of Inputs to change and display motor velocities
 
@@ -114,15 +117,21 @@ function init() {
     }
 
     for (let i = 0; i < 4; i++) {
-        inp_pos[i] = document.getElementById(`inp_pos_${i + 1}`);
+        inp_pos[i] = document.getElementById(`inp_pos_${i}`);
         inp_pos[i].value = "0";
         inp_pos[i].onchange = function (event) { console.log(event); onsubmit_inp_set_pos(i); }
     }
 
-    for (let i = 1; i < 5; i++) {
+    for (let i = 0; i < 4; i++) {
         inp_vel[i] = document.getElementById(`inp_vel_${i}`);
         inp_vel[i].value = "0";
         inp_vel[i].onchange = function (event) { console.log(event); onsubmit_inp_set_vel(i); }
+    }
+
+    for (let i = 0; i < 6; i++) {
+        inp_err[i] = document.getElementById(`inp_err_${i}`);
+        inp_err[i].value = "0";
+        // inp_err[i].onchange = function (event) { console.log(event); onsubmit_inp_set_err(i); }
     }
 
     // Draw circle in cvs_onoff
@@ -172,6 +181,7 @@ function request_all_data() {
     doSend("pid_kd:?");
     doSend(Cmd_Pos + ":?");
     doSend(Cmd_Vel + ":?");
+    doSend(Cmd_Err + ":?");
 }
 
 
@@ -244,7 +254,7 @@ function onMessage(event) {
         command = event.data.slice(0, idx);
         value = event.data.slice(idx + 1);
 
-        if (command == Cmd_Pos || command == Cmd_Vel) {
+        if (command == Cmd_Pos || command == Cmd_Vel || command == Cmd_Err) {
             let last_split = idx;
             let split = 0;
             while (true) {
@@ -303,7 +313,17 @@ function onMessage(event) {
             console.log(`values array has size: ${length} and contains: ${values}`)
             for (let i = 0; i < length; i++) {
                 console.log(`velocity values received: ${values[i]}`);
-                inp_pos[i].value = values[i];
+                inp_vel[i].value = values[i];
+            }
+            break;
+        }
+        case "req_err": {
+            console.log("Error data:");
+            let length = values.length;
+            console.log(`values array has size: ${length} and contains: ${values}`)
+            for (let i = 0; i < length; i++) {
+                console.log(`error values received: ${values[i]}`);
+                inp_err[i].value = values[i];
             }
             break;
         }

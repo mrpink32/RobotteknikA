@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 210 297"
+   version="1.1"
+   id="svg5"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs2">
+    <rect
+       x="177.85042"
+       y="469.1127"
+       width="426.58326"
+       height="213.93601"
+       id="rect281" />
+    <rect
+       x="167.54025"
+       y="480.71164"
+       width="536.1288"
+       height="159.80762"
+       id="rect275" />
+  </defs>
+  <g
+     id="layer1">
+    <rect
+       style="fill:#000000;stroke-width:0.245863"
+       id="rect111"
+       width="50"
+       height="50"
+       x="25"
+       y="25" />
+    <circle
+       style="fill:#000000;stroke-width:0.298687"
+       id="path219"
+       cx="137.5"
+       cy="62.5"
+       r="37.5" />
+    <text
+       xml:space="preserve"
+       style="font-size:54.6179px;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono, Normal';fill:#000000;stroke-width:1.46298"
+       x="58.850803"
+       y="140.91417"
+       id="text287"
+       transform="scale(0.80834484,1.2370958)"><tspan
+         id="tspan285"
+         style="stroke-width:1.46298"
+         x="58.850803"
+         y="140.91417">Test</tspan></text>
+  </g>
+</svg>

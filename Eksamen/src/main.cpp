@@ -8,6 +8,7 @@
 #include <Arduino.h>
 #include <motor.h>
 #include <global.h>
+#include <svglib.h>
 using namespace std;
 
 // Constants
@@ -20,6 +21,7 @@ const char *cmd_led_state = "led_state";
 const char *cmd_pid = "pid_";
 const char *cmd_pos = "req_pos";
 const char *cmd_vel = "req_vel";
+const char *cmd_err = "req_err";
 
 const int32_t WIFI_CHANNEL = 9; // alle grupper skal have hver sin kanal
 const int32_t DNS_PORT = 53;
@@ -32,7 +34,7 @@ AsyncWebServer Server(HTTP_PORT);
 WebSocketsServer WebSocket = WebSocketsServer(WS_PORT);
 TaskHandle_t MotionTaskHandle;
 
-char MsgBuf[32];
+char MsgBuf[64];
 int32_t LedState = 0;
 // double KpVal = 3.1415;
 // double KiVal = 2.71;
@@ -153,7 +155,6 @@ void handle_led_state(char *command, uint8_t client_num)
 
 void handle_pos_req(char *command, uint8_t client_num)
 {
-    //
     char *value = strstr(command, ":");
 
     if (value == NULL || *value != ':')
@@ -302,11 +303,40 @@ void handle_kx(char *command, uint8_t client_num)
     }
 }
 
+void handle_err_req(char *command, uint8_t client_num)
+{
+    char *value = strstr(command, ":");
+
+    if (value == NULL || *value != ':')
+    {
+        Serial.printf("[%u]: Bad command %s\n", client_num, command);
+        log_e("[%u]: Bad command %s", client_num, command);
+        return;
+    }
+
+    if (*(value + 1) == '?')
+    {
+        double data_1 = motor1.position_pid.get_error();
+        double data_2 = motor1.velocity_pid.get_error();
+        double data_3 = motor2.position_pid.get_error();
+        double data_4 = motor2.velocity_pid.get_error();
+        double data_5 = motor3.position_pid.get_error();
+        double data_6 = motor3.velocity_pid.get_error();
+        sprintf(MsgBuf, "%s:%f,%f,%f,%f,%f,%f,", cmd_err, data_1, data_2, data_3, data_4, data_5, data_6);
+        web_socket_send(MsgBuf, client_num, false);
+    }
+    else
+    {
+        log_e("[%u]: settimg error values is not supported: %s", client_num, value + 1);
+    }
+}
+
 void handle_command(uint8_t client_num, uint8_t *payload, size_t length)
 {
     char *command = (char *)payload;
 
     log_d("[%u] Received text: %s", client_num, command);
+    // Serial.printf("%s/n", command);
 
     if (strcmp(command, cmd_toggle) == 0)
         handle_toggle(client_num); // Toggle LED
@@ -318,6 +348,8 @@ void handle_command(uint8_t client_num, uint8_t *payload, size_t length)
         handle_pos_req(command, client_num); // position request
     else if (strncmp(command, cmd_vel, strlen(cmd_vel)) == 0)
         handle_vel_req(command, client_num); // velocity request
+    else if (strncmp(command, cmd_err, strlen(cmd_err)) == 0)
+        handle_err_req(command, client_num); // error request
     else
         log_e("[%u] Message not recognized", client_num);
 
@@ -699,7 +731,6 @@ void setup()
     setup_spiffs();
     setup_network();
     setup_tasks();
-    // setDestination(100, 100);
 }
 
 void loop()
