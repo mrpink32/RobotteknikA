@@ -731,6 +731,7 @@ void setup()
     setup_spiffs();
     setup_network();
     setup_tasks();
+
 }
 
 void loop()
