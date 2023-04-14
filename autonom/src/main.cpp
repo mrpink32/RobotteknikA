@@ -368,13 +368,13 @@ void handle_kx(char *command, uint8_t client_num)
 		{
 			*parm_value = result;
 			log_d("[%u]: k%c value received %f", client_num, subtype, *parm_value);
-			sprintf(MsgBuf, "%sk%c:%f", cmd_pid, subtype, *parm_value);
-			web_socket_send(MsgBuf, client_num, true);
 		}
 		else
 		{
 			log_e("[%u]: illegal format of k%c value received: %s", client_num, subtype, value + 1);
 		}
+		sprintf(MsgBuf, "%sk%c:%f", cmd_pid, subtype, *parm_value);
+		web_socket_send(MsgBuf, client_num, true);
 	}
 }
 

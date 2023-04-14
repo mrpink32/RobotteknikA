@@ -54,9 +54,12 @@
 // constans
 const Cmd_Toggle = "toggle";
 const Cmd_LedState = "led_state";
-const Cmd_Pos = "req_pos";
-const Cmd_Vel = "req_vel";
-const Cmd_Err = "req_err";
+const Cmd_Pos = "pos";
+const Cmd_max_pos = "max_pos";
+const Cmd_Vel = "vel";
+const Cmd_max_vel = "max_vel";
+const Cmd_Err = "err";
+const Cmd_PrevErr = "prev_err";
 
 
 // system vars
@@ -69,9 +72,12 @@ var ctx_onoff;          // Context to draw robot on off state on
 var btn_set_kx = [];    // Array of Buttons that When clicked submits kx value to robot
 var inp_kx = [];        // Array of TextAreas where user can enter kx value
 
-var inp_err = [];   
 var inp_pos = [];       // Array of Inputs to change and display motor positions
 var inp_vel = [];       // Array of Inputs to change and display motor velocities
+var inp_target = [];    // Array of Inputs to change and display motor pid target values
+var inp_err = [];       // Array of Inputs to display motor pid errors
+var inp_max_pos = [];   // Array of Inputs to change and display max motor position
+var inp_max_vel = [];   // Array of Inputs to change and display max motor velocity
 
 
 function get_url() {
@@ -116,13 +122,18 @@ function init() {
         btn_set_kx[v].onclick = function (event) { console.log(event); onclick_btn_set_kx(v); }
     }
 
-    for (let i = 0; i < 4; i++) {
-        inp_pos[i] = document.getElementById(`inp_pos_${i}`);
-        inp_pos[i].value = "0";
-        inp_pos[i].onchange = function (event) { console.log(event); onsubmit_inp_set_pos(i); }
+    for (let i = 0; i < 6; i++) {
+        inp_target[i] = document.getElementById(`inp_target_${i}`);
+        inp_target[i].value = "0";
+        inp_target[i].onchange = function (event) { console.log(event); onsubmit_inp_set_target(i); }
     }
 
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 3; i++) {
+        inp_pos[i] = document.getElementById(`inp_pos_${i}`);
+        inp_pos[i].value = "0";
+    }
+
+    for (let i = 0; i < 3; i++) {
         inp_vel[i] = document.getElementById(`inp_vel_${i}`);
         inp_vel[i].value = "0";
         inp_vel[i].onchange = function (event) { console.log(event); onsubmit_inp_set_vel(i); }
@@ -160,19 +171,19 @@ function onclick_btn_set_kx(parm) {
     doSend(cmd);
 }
 
-function onsubmit_inp_set_pos(index) {
+function onsubmit_inp_set_target(index) {
     console.log("onsubmit: position from `${index}`")
     var value = inp_pos[index].value;
-    var cmd = `req_pos:${value},${index},`;
+    var cmd = `${Cmd_Pos}:${value},${index},`;
     doSend(cmd);
 }
 
-function onsubmit_inp_set_vel(index) {
-    console.log("onclick:  grim")
-    var value = inp_vel[index].value;
-    var cmd = `req_vel:${value}`;
-    doSend(cmd);
-}
+// function onsubmit_inp_set_vel(index) {
+//     console.log("onclick:  grim")
+//     var value = inp_vel[index].value;
+//     var cmd = `${Cmd_Vel}:${value}`;
+//     doSend(cmd);
+// }
 
 function request_all_data() {
     doSend(Cmd_LedState + ":?");
@@ -297,7 +308,7 @@ function onMessage(event) {
             console.log(`kd value received: ${value}`);
             inp_kx["kd"].value = value;
             break;
-        case "req_pos": {
+        case Cmd_Pos: {
             console.log("Positions data:");
             let length = values.length;
             console.log(`values array has size: ${length} and contains: ${values}`)
@@ -307,7 +318,7 @@ function onMessage(event) {
             }
             break;
         }
-        case "req_vel": {
+        case Cmd_Vel: {
             console.log("Velocity data:");
             let length = values.length;
             console.log(`values array has size: ${length} and contains: ${values}`)
@@ -317,7 +328,7 @@ function onMessage(event) {
             }
             break;
         }
-        case "req_err": {
+        case Cmd_Err: {
             console.log("Error data:");
             let length = values.length;
             console.log(`values array has size: ${length} and contains: ${values}`)
