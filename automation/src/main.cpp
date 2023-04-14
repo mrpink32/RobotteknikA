@@ -89,44 +89,44 @@ void toggleDirection(bool *direction)
 
 void setup()
 {
-	// hello world
-	Serial.begin(115200);
-	Serial.println("Hello World!");
+	// // hello world
+	// Serial.begin(115200);
+	// Serial.println("Hello World!");
 
-	// setup pin
-	pinMode(STEP_PIN, OUTPUT);
-	pinMode(DIR_PIN, OUTPUT);
+	// // setup pin
+	// pinMode(STEP_PIN, OUTPUT);
+	// pinMode(DIR_PIN, OUTPUT);
 
-	std::vector<int32_t> step_times;
+	// std::vector<int32_t> step_times;
 
-	for (double_t current_time = 0; current_time <= TIME; current_time += 0.001)
-	{
-		if (moveTest(current_time) >= jumps + 1)
-		{
-			jumps++;
-			step_times.push_back(int32_t(current_time * 1000 + 0.1));
-			current_time += 0.070;
-			Serial.printf("%d: %f | %f\n", jumps, current_time, moveTest(current_time + 100));
-		}
-	}
+	// for (double_t current_time = 0; current_time <= TIME; current_time += 0.001)
+	// {
+	// 	if (moveTest(current_time) >= jumps + 1)
+	// 	{
+	// 		jumps++;
+	// 		step_times.push_back(int32_t(current_time * 1000 + 0.1));
+	// 		current_time += 0.070;
+	// 		Serial.printf("%d: %f | %f\n", jumps, current_time, moveTest(current_time + 100));
+	// 	}
+	// }
 
-	for (size_t i = 0; i <= MAX_STEPS - 3; i++)
-	{
-		delays.push_back(step_times[i + 1] - step_times[i]);
-		Serial.printf("%d: %d\n", i, delays[i]);
-	}
+	// for (size_t i = 0; i <= MAX_STEPS - 3; i++)
+	// {
+	// 	delays.push_back(step_times[i + 1] - step_times[i]);
+	// 	Serial.printf("%d: %d\n", i, delays[i]);
+	// }
 
-	// setup and start timer 1
-	timer = timerBegin(0, 80, true); // 2 = 25ns, 80 = 1us
-	timerAttachInterrupt(timer, &onTimer, true);
-	timerAlarmWrite(timer, delays[steps] /*1000*/, false);
-	timerWrite(timer, 0);
-	timerAlarmEnable(timer);
+	// // setup and start timer 1
+	// timer = timerBegin(0, 80, true); // 2 = 25ns, 80 = 1us
+	// timerAttachInterrupt(timer, &onTimer, true);
+	// timerAlarmWrite(timer, delays[steps] /*1000*/, false);
+	// timerWrite(timer, 0);
+	// timerAlarmEnable(timer);
 
-	// setup and start timer 2
-	timer2 = timerBegin(1, 80, true); // 2 = 25ns, 80 = 1us
-	timerAttachInterrupt(timer2, &onTimer2, true);
-	timerAlarmWrite(timer2, 8, false);
+	// // setup and start timer 2
+	// timer2 = timerBegin(1, 80, true); // 2 = 25ns, 80 = 1us
+	// timerAttachInterrupt(timer2, &onTimer2, true);
+	// timerAlarmWrite(timer2, 8, false);
 }
 
 void loop()
@@ -135,9 +135,9 @@ void loop()
 
 	/* changes direction when the current amount of steps
 	is larger or equal to the max amount of steps allowed */
-	if (steps >= MAX_STEPS - 3)
-	{
-		toggleDirection(&direction);
-		steps = 0;
-	}
+	// if (steps >= MAX_STEPS - 3)
+	// {
+	// 	toggleDirection(&direction);
+	// 	steps = 0;
+	// }
 }

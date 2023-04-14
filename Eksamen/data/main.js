@@ -54,10 +54,12 @@
 // constans
 const Cmd_Toggle = "toggle";
 const Cmd_LedState = "led_state";
-const Cmd_Pos = "pos";
-const Cmd_max_pos = "max_pos";
-const Cmd_Vel = "vel";
-const Cmd_max_vel = "max_vel";
+const Cmd_CurrentPos = "current_pos";
+const Cmd_CurrentVel = "current_vel";
+const Cmd_MaxPos = "max_pos";
+const Cmd_MaxVel = "max_vel";
+const Cmd_TargetPos = "target_pos";
+const Cmd_TargetVel = "target_vel";
 const Cmd_Err = "err";
 const Cmd_PrevErr = "prev_err";
 
@@ -76,8 +78,7 @@ var inp_pos = [];       // Array of Inputs to change and display motor positions
 var inp_vel = [];       // Array of Inputs to change and display motor velocities
 var inp_target = [];    // Array of Inputs to change and display motor pid target values
 var inp_err = [];       // Array of Inputs to display motor pid errors
-var inp_max_pos = [];   // Array of Inputs to change and display max motor position
-var inp_max_vel = [];   // Array of Inputs to change and display max motor velocity
+var inp_max = [];       // Array of Inputs to change and display max motor values
 
 
 function get_url() {
@@ -122,28 +123,33 @@ function init() {
         btn_set_kx[v].onclick = function (event) { console.log(event); onclick_btn_set_kx(v); }
     }
 
+
+    for (let i = 0; i < 3; i++) {
+        inp_pos[i] = document.getElementById(`inp_pos_${i}`);
+        inp_pos[i].value = "0";
+        inp_vel[i] = document.getElementById(`inp_vel_${i}`);
+        inp_vel[i].value = "0";
+    }
+    
+    // 8 if global should have a set
     for (let i = 0; i < 6; i++) {
         inp_target[i] = document.getElementById(`inp_target_${i}`);
         inp_target[i].value = "0";
         inp_target[i].onchange = function (event) { console.log(event); onsubmit_inp_set_target(i); }
     }
 
-    for (let i = 0; i < 3; i++) {
-        inp_pos[i] = document.getElementById(`inp_pos_${i}`);
-        inp_pos[i].value = "0";
-    }
-
-    for (let i = 0; i < 3; i++) {
-        inp_vel[i] = document.getElementById(`inp_vel_${i}`);
-        inp_vel[i].value = "0";
-        inp_vel[i].onchange = function (event) { console.log(event); onsubmit_inp_set_vel(i); }
-    }
-
     for (let i = 0; i < 6; i++) {
         inp_err[i] = document.getElementById(`inp_err_${i}`);
         inp_err[i].value = "0";
-        // inp_err[i].onchange = function (event) { console.log(event); onsubmit_inp_set_err(i); }
     }
+
+    for (let i = 0; i < 2; i++) {
+        inp_max[i] = document.getElementById(`inp_max_${i}`);
+        inp_max[i].value = "0";
+        inp_max[i].onchange = function (event) { console.log(event); onsubmit_inp_set_max(i); }
+    }
+
+    
 
     // Draw circle in cvs_onoff
     ctx_onoff = cvs_onoff.getContext("2d");
@@ -172,26 +178,40 @@ function onclick_btn_set_kx(parm) {
 }
 
 function onsubmit_inp_set_target(index) {
-    console.log("onsubmit: position from `${index}`")
+    console.log(`onsubmit: target from ${index}`);
     var value = inp_pos[index].value;
-    var cmd = `${Cmd_Pos}:${value},${index},`;
+    var cmd = `${Cmd_CurrentPos}:${value},${index},`;
     doSend(cmd);
 }
 
-// function onsubmit_inp_set_vel(index) {
-//     console.log("onclick:  grim")
-//     var value = inp_vel[index].value;
-//     var cmd = `${Cmd_Vel}:${value}`;
-//     doSend(cmd);
-// }
+function onsubmit_inp_set_max(index) {
+    console.log(`onsubmit: max value from ${index}`);
+    var value = inp_max[index].value;
+    var cmd = "";
+    switch (index) {
+        case 0:
+            cmd = `${Cmd_MaxPos}:${value}`;
+            break;
+        case 1:
+            cmd = `${Cmd_MaxVel}:${value}`;
+            break;
+        default:
+            break;
+    }
+    doSend(cmd);
+}
 
 function request_all_data() {
     doSend(Cmd_LedState + ":?");
     doSend("pid_kp:?");
     doSend("pid_ki:?");
     doSend("pid_kd:?");
-    doSend(Cmd_Pos + ":?");
-    doSend(Cmd_Vel + ":?");
+    doSend(Cmd_CurrentPos + ":?");
+    doSend(Cmd_CurrentVel + ":?");
+    doSend(Cmd_MaxPos + ":?");
+    doSend(Cmd_MaxVel + ":?");
+    doSend(Cmd_TargetPos + ":?");
+    doSend(Cmd_TargetVel + ":?");
     doSend(Cmd_Err + ":?");
 }
 
@@ -265,7 +285,7 @@ function onMessage(event) {
         command = event.data.slice(0, idx);
         value = event.data.slice(idx + 1);
 
-        if (command == Cmd_Pos || command == Cmd_Vel || command == Cmd_Err) {
+        if (command == Cmd_CurrentPos || command == Cmd_CurrentVel || command == Cmd_Err) {
             let last_split = idx;
             let split = 0;
             while (true) {
@@ -308,7 +328,7 @@ function onMessage(event) {
             console.log(`kd value received: ${value}`);
             inp_kx["kd"].value = value;
             break;
-        case Cmd_Pos: {
+        case Cmd_CurrentPos: {
             console.log("Positions data:");
             let length = values.length;
             console.log(`values array has size: ${length} and contains: ${values}`)
@@ -318,7 +338,7 @@ function onMessage(event) {
             }
             break;
         }
-        case Cmd_Vel: {
+        case Cmd_CurrentVel: {
             console.log("Velocity data:");
             let length = values.length;
             console.log(`values array has size: ${length} and contains: ${values}`)

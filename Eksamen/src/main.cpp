@@ -20,15 +20,18 @@ const char *PASSWORD = "grimgrim";
 
 enum
 {
-    CMD_TOGGLE,
-    CMD_LED_STATE,
     CMD_PID,
+    CMD_TOGGLE,
+    CMD_ERR_REQ,
     CMD_POS_REQ,
     CMD_VEL_REQ,
+    CMD_LED_STATE,
     CMD_MAX_POS_REQ,
     CMD_MAX_VEL_REQ,
-    CMD_ERR_REQ,
     CMD_MAX_ERR_REQ,
+    CMD_PREV_ERR,
+    CMD_TARGET_POS,
+    CMD_TARGET_VEL,
 };
 
 typedef struct
@@ -38,15 +41,17 @@ typedef struct
 } cmd_t;
 
 static cmd_t cmds[] = {
-    {"toggle", CMD_TOGGLE},
-    {"led_state", CMD_LED_STATE},
     {"pid_", CMD_PID},
-    {"pos", CMD_POS_REQ},
-    {"vel", CMD_VEL_REQ},
+    {"err", CMD_ERR_REQ},
+    {"toggle", CMD_TOGGLE},
+    {"prev_err", CMD_PREV_ERR},
+    {"led_state", CMD_LED_STATE},
+    {"current_pos", CMD_POS_REQ},
+    {"current_vel", CMD_VEL_REQ},
     {"max_pos", CMD_MAX_POS_REQ},
     {"max_vel", CMD_MAX_VEL_REQ},
-    {"err", CMD_ERR_REQ},
-    {"max_err", CMD_MAX_ERR_REQ},
+    {"target_pos", CMD_TARGET_POS},
+    {"target_vel", CMD_TARGET_VEL},
 };
 
 // const char *cmd_toggle = "toggle";
@@ -215,58 +220,6 @@ void handle_led_state(char *command, uint8_t client_num)
     }
 }
 
-void handle_pos_req(char *command, uint8_t client_num)
-{
-    char *value = strstr(command, ":");
-
-    if (value == NULL || *value != ':')
-    {
-        log_e("[%u]: Bad command %s", client_num, command);
-        return;
-    }
-
-    if (*(value + 1) == '?')
-    {
-        int32_t data_1 = motor1.get_position();
-        int32_t data_2 = motor2.get_position();
-        int32_t data_3 = motor3.get_position();
-        sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_POS_REQ), data_1, data_2, data_3);
-        web_socket_send(MsgBuf, client_num, false);
-    }
-    else
-    {
-        char *e;
-        int32_t result = strtol(value + 1, &e, 10);
-        log_e("[%u]: setting position values is not supported: %s", client_num, value + 1);
-    }
-}
-
-void handle_vel_req(char *command, uint8_t client_num)
-{
-    char *value = strstr(command, ":");
-
-    if (value == NULL || *value != ':')
-    {
-        log_e("[%u]: Bad command %s", client_num, command);
-        return;
-    }
-
-    if (*(value + 1) == '?')
-    {
-        int32_t data_1 = motor1.get_velocity();
-        int32_t data_2 = motor2.get_velocity();
-        int32_t data_3 = motor3.get_velocity();
-        sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_VEL_REQ), data_1, data_2, data_3);
-        web_socket_send(MsgBuf, client_num, false);
-    }
-    else
-    {
-        char *e;
-        int32_t result = strtol(value + 1, &e, 10);
-        log_e("[%u]: setting velocity values is not supported: %s", client_num, value + 1);
-    }
-}
-
 void handle_kx(char *command, uint8_t client_num)
 {
     char *value = strstr(command, ":");
@@ -334,6 +287,54 @@ void handle_kx(char *command, uint8_t client_num)
     }
 }
 
+void handle_pos_req(char *command, uint8_t client_num)
+{
+    char *value = strstr(command, ":");
+
+    if (value == NULL || *value != ':')
+    {
+        log_e("[%u]: Bad command %s", client_num, command);
+        return;
+    }
+
+    if (*(value + 1) == '?')
+    {
+        int32_t data_1 = motor1.get_position();
+        int32_t data_2 = motor2.get_position();
+        int32_t data_3 = motor3.get_position();
+        sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_POS_REQ), data_1, data_2, data_3);
+        web_socket_send(MsgBuf, client_num, false);
+    }
+    else
+    {
+        log_e("[%u]: setting position values is not supported: %s", client_num, command);
+    }
+}
+
+void handle_vel_req(char *command, uint8_t client_num)
+{
+    char *value = strstr(command, ":");
+
+    if (value == NULL || *value != ':')
+    {
+        log_e("[%u]: Bad command %s", client_num, command);
+        return;
+    }
+
+    if (*(value + 1) == '?')
+    {
+        int32_t data_1 = motor1.get_velocity();
+        int32_t data_2 = motor2.get_velocity();
+        int32_t data_3 = motor3.get_velocity();
+        sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_VEL_REQ), data_1, data_2, data_3);
+        web_socket_send(MsgBuf, client_num, false);
+    }
+    else
+    {
+        log_e("[%u]: setting velocity values is not supported: %s", client_num, command);
+    }
+}
+
 void handle_err_req(char *command, uint8_t client_num)
 {
     char *value = strstr(command, ":");
@@ -358,7 +359,9 @@ void handle_err_req(char *command, uint8_t client_num)
     }
     else
     {
-        log_e("[%u]: settimg error values is not supported: %s", client_num, value + 1);
+        char *e;
+        int32_t result = strtol(value + 1, &e, 10);
+        log_e("[%u]: setting error values is not supported: %s", client_num, value + 1);
     }
 }
 
@@ -387,6 +390,22 @@ void handle_command(uint8_t client_num, uint8_t *payload, size_t length)
             break;
         case CMD_ERR_REQ:
             handle_err_req(command, client_num);
+            break;
+        case CMD_MAX_POS_REQ:
+            log_d("Implement handler for request: %s", command);
+            // handle_max_pos(command, client_num);
+            break;
+        case CMD_MAX_VEL_REQ:
+            log_d("Implement handler for request: %s", command);
+            // handle_max_vel(command, client_num);
+            break;
+        case CMD_TARGET_POS:
+            log_d("Implement handler for request: %s", command);
+            // handle_max_vel(command, client_num);
+            break;
+        case CMD_TARGET_VEL:
+            log_d("Implement handler for request: %s", command);
+            // handle_max_vel(command, client_num);
             break;
         default:
             log_e("[%u] Message not recognized", client_num);
@@ -555,99 +574,6 @@ void setup_network()
 //     return result;
 // }
 
-// void pid_task_1(void *arg)
-// {
-//     TickType_t xTimeIncrement = configTICK_RATE_HZ * DT_S;
-//     TickType_t xLastWakeTime = xTaskGetTickCount();
-//     motor1.set_position(encoder1.getCount());
-//     int64_t prev_pos = motor1.get_position();
-//     for (;;)
-//     { // loop tager mindre end 18us * 2
-//         double_t req_vel = 0;
-//         digitalWrite(PIN_PID_LOOP_1, HIGH);
-// 
-//         motor1.set_position(encoder1.getCount());
-//         motor1.set_velocity((motor1.get_position() - prev_pos) / DT_S);
-// 
-//         if (mode_pos)
-//         {
-//             motor1.position_pid.update(req_posx, motor1.get_position(), &ctrl_pos_1, integration_threshold);
-// 
-//             req_vel = constrain(ctrl_pos_1, -max_vel, max_vel);
-//         }
-// 
-//         motor1.velocity_pid.update(req_vel, motor1.get_velocity(), &ctrl_vel1, integration_threshold);
-// 
-//         motor1.hbridge.set_pwm(ctrl_vel1);
-// 
-//         prev_pos = motor1.get_position();
-//         digitalWrite(PIN_PID_LOOP_1, LOW);
-//         vTaskDelayUntil(&xLastWakeTime, xTimeIncrement);
-//     }
-// }
-// 
-// void pid_task_2(void *arg)
-// {
-//     TickType_t xTimeIncrement = configTICK_RATE_HZ * DT_S;
-//     TickType_t xLastWakeTime = xTaskGetTickCount();
-//     motor2.set_position(encoder2.getCount());
-//     int64_t prev_pos = motor2.get_position();
-//     for (;;)
-//     { // loop tager mindre end 18us * 2
-//         double_t req_vel = 0;
-//         digitalWrite(PIN_PID_LOOP_2, HIGH);
-// 
-//         motor2.set_position(encoder2.getCount());
-//         motor2.set_velocity((motor2.get_position() - prev_pos) / DT_S);
-// 
-//         if (mode_pos)
-//         {
-//             motor2.position_pid.update(req_posy, motor2.get_position(), &ctrl_pos_2, integration_threshold);
-// 
-//             req_vel = constrain(ctrl_pos_2, -max_vel, max_vel);
-//         }
-// 
-//         motor2.velocity_pid.update(req_vel, motor2.get_velocity(), &ctrl_vel2, integration_threshold);
-// 
-//         motor2.hbridge.set_pwm(ctrl_vel2);
-// 
-//         prev_pos = motor2.get_position();
-//         digitalWrite(PIN_PID_LOOP_2, LOW);
-//         vTaskDelayUntil(&xLastWakeTime, xTimeIncrement);
-//     }
-// }
-// 
-// void pid_task_3(void *arg)
-// {
-//     TickType_t xTimeIncrement = configTICK_RATE_HZ * DT_S;
-//     TickType_t xLastWakeTime = xTaskGetTickCount();
-//     motor3.set_position(encoder3.getCount());
-//     int64_t prev_pos = motor3.get_position();
-//     for (;;)
-//     { // loop tager mindre end 18us * 2
-//         double_t req_vel = 0;
-//         digitalWrite(PIN_PID_LOOP_3, HIGH);
-// 
-//         motor3.set_position(encoder3.getCount());
-//         motor3.set_velocity((motor3.get_position() - prev_pos) / DT_S);
-// 
-//         if (mode_pos)
-//         {
-//             motor3.position_pid.update(req_posy, motor3.get_position(), &ctrl_pos_3, integration_threshold);
-// 
-//             req_vel = constrain(ctrl_pos_3, -max_vel, max_vel);
-//         }
-// 
-//         motor3.velocity_pid.update(req_vel, motor3.get_velocity(), &ctrl_vel3, integration_threshold);
-// 
-//         motor3.hbridge.set_pwm(ctrl_vel3);
-// 
-//         prev_pos = motor3.get_position();
-//         digitalWrite(PIN_PID_LOOP_3, LOW);
-//         vTaskDelayUntil(&xLastWakeTime, xTimeIncrement);
-//     }
-// }
-
 void pid_task(void *arg)
 {
     TickType_t xTimeIncrement = configTICK_RATE_HZ * DT_S;
@@ -723,33 +649,6 @@ void pid_task(void *arg)
 
 void setup_tasks()
 {
-    // log_i("starting pid task");
-    // xTaskCreatePinnedToCore(
-    //     pid_task_1,      /* Function to implement the task */
-    //     "pid_task",      /* Name of the task */
-    //     5000,            /* Stack size in words */
-    //     NULL,            /* Task input parameter */
-    //     3,               /* Priority of the task from 0 to 25, higher number = higher priority */
-    //     &PidTaskHandle1, /* Task handle. */
-    //     1);              /* Core where the task should run */
-    // log_i("starting pid task");
-    // xTaskCreatePinnedToCore(
-    //     pid_task_2,      /* Function to implement the task */
-    //     "pid_task2",     /* Name of the task */
-    //     5000,            /* Stack size in words */
-    //     NULL,            /* Task input parameter */
-    //     3,               /* Priority of the task from 0 to 25, higher number = higher priority */
-    //     &PidTaskHandle2, /* Task handle. */
-    //     1);
-    // log_i("starting pid task");
-    // xTaskCreatePinnedToCore(
-    //     pid_task_3,       /* Function to implement the task */
-    //     "pid_task_3",     /* Name of the task */
-    //     5000,             /* Stack size in words */
-    //     NULL,             /* Task input parameter */
-    //     3,                /* Priority of the task from 0 to 25, higher number = higher priority */
-    //     &PidTaskHandle_3, /* Task handle. */
-    //     1);
     log_i("starting pid task");
     xTaskCreatePinnedToCore(
         pid_task,       /* Function to implement the task */
