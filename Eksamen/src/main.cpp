@@ -437,9 +437,9 @@ void handle_target(char *command, uint8_t client_num)
     
     if (*(value + 1) == '?')
     {
-        int32_t data_1 = 100 // motor target
-        int32_t data_2 = 100 
-        int32_t data_3 = 100
+        int32_t data_1 = 100; // motor target
+        int32_t data_2 = 100; 
+        int32_t data_3 = 100;
         sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_MAX_POS_REQ), data_1, data_2, data_3);
         web_socket_send(MsgBuf, client_num, false);
     }
