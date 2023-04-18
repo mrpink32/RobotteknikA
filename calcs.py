@@ -30,17 +30,10 @@ p1 = np.polyfit(x,dicy[1],n-1)
 p2 = np.polyfit(x,dicy[2],n-1)
 p3 = np.polyfit(x,dicy[3],n-1)
 for i in p1:
-    if abs(i) > 0.0000001:
-        print(float(i))
-    else:
-        print(float(0))
+    print(float(i))
+print(' ')
 for i in p2:
-    if abs(i) > 0.0000001:
-        print(float(i))
-    else:
-        print(float(0))
+    print(float(i))
+print(' ')
 for i in p3:
-    if abs(i) > 0.0000001:
-        print(float(i))
-    else:
-        print(float(0))
+    print(float(i))
