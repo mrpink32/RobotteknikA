@@ -35,3 +35,8 @@ int32_t Motor::get_velocity()
 {
     return this->current_velocity;
 }
+
+void Motor::get_target_position()
+{
+    return this->requested_position;
+}
