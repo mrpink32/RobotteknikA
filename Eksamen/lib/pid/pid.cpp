@@ -24,6 +24,18 @@ void Pid::set_kd(double kd)
     this->kd = kd;
 }
 
+int32_t Pid::set_max_ctrl_value(int32_t max_ctrl_value)
+{
+    this->max_ctrl_value = max_ctrl_value;
+    return max_ctrl_value;
+}
+
+int32_t Pid::set_min_ctrl_value(int32_t min_ctrl_value)
+{
+    this->min_ctrl_value = min_ctrl_value;
+    return min_ctrl_value;
+}
+
 double Pid::get_dt(void)
 {
     return this->dt;
@@ -42,6 +54,16 @@ double Pid::get_ki(void)
 double Pid::get_kd(void)
 {
     return this->kd;
+}
+
+int32_t Pid::get_max_ctrl_value(void)
+{
+    return this->max_ctrl_value;
+}
+
+int32_t Pid::get_min_ctrl_value(void)
+{
+    return this->min_ctrl_value;
 }
 
 double Pid::squash(double value)

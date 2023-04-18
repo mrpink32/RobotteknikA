@@ -22,6 +22,8 @@ public:
     void set_kp(double kp);
     void set_ki(double ki);
     void set_kd(double kd);
+    int32_t set_max_ctrl_value(int32_t max_ctrl_value);
+    int32_t set_min_ctrl_value(int32_t min_ctrl_value);
 
     double get_dt(void);
 
@@ -29,6 +31,8 @@ public:
     double get_ki(void);
     double get_kd(void);
     double get_error(void) { return error; };
+    int32_t get_max_ctrl_value(void);
+    int32_t get_min_ctrl_value(void);
 
     double squash(double value);
     void update(double set_value, double current_value, double *ctrl_value, double integration_threshold);

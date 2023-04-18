@@ -78,7 +78,8 @@ var inp_pos = [];       // Array of Inputs to change and display motor positions
 var inp_vel = [];       // Array of Inputs to change and display motor velocities
 var inp_target = [];    // Array of Inputs to change and display motor pid target values
 var inp_err = [];       // Array of Inputs to display motor pid errors
-var inp_max = [];       // Array of Inputs to change and display max motor values
+var inp_max_pos = [];   // Array of Inputs to change and display max motor values
+var inp_max_vel = [];   // Array of Inputs to change and display max motor values
 
 
 function get_url() {
@@ -143,10 +144,13 @@ function init() {
         inp_err[i].value = "0";
     }
 
-    for (let i = 0; i < 2; i++) {
-        inp_max[i] = document.getElementById(`inp_max_${i}`);
-        inp_max[i].value = "0";
-        inp_max[i].onchange = function (event) { console.log(event); onsubmit_inp_set_max(i); }
+    for (let i = 0; i < 4; i++) {
+        inp_max_pos[i] = document.getElementById(`inp_max_pos_${i}`);
+        inp_max_pos[i].value = "0";
+        inp_max_pos[i].onchange = function (event) { console.log(event); onsubmit_inp_set_max_pos(i); }
+        inp_max_vel[i] = document.getElementById(`inp_max_vel_${i}`);
+        inp_max_vel[i].value = "0";
+        inp_max_vel[i].onchange = function (event) { console.log(event); onsubmit_inp_set_max_vel(i); }
     }
 
     
@@ -179,20 +183,57 @@ function onclick_btn_set_kx(parm) {
 
 function onsubmit_inp_set_target(index) {
     console.log(`onsubmit: target from ${index}`);
-    var value = inp_pos[index].value;
-    var cmd = `${Cmd_CurrentPos}:${value},${index},`;
+    var value = inp_target[index].value;
+    var cmd = `${Cmd_TargetPos}:${value},${index},`;
     doSend(cmd);
 }
 
-function onsubmit_inp_set_max(index) {
+// function onsubmit_inp_set_max(index) {
+//     console.log(`onsubmit: max value from ${index}`);
+//     var value = inp_max[index].value;
+//     var cmd = "";
+//     switch (index) {
+//         case 0 && 2 && 4:
+//             cmd = `${Cmd_MaxVel}:${value};${index}`;
+//             break;
+//         case 6:
+//             cmd = `${Cmd_MaxPos}:${value}`;
+//             break;
+//         case 7:
+//             cmd = `${Cmd_MaxVel}:${value}`;
+//             break;
+//         default:
+//             break;
+//     }
+//     doSend(cmd);
+// }
+
+function onsubmit_inp_set_max_pos(index) {
+    console.log(`onsubmit: max value from ${index}`);
+    var value = inp_max_pos[index].value;
+    var cmd = "";
+    switch (index) {
+        case 0 - 2:
+            cmd = `${Cmd_MaxPos}:${value};${index}`;
+            break;
+        case 3:
+            cmd = `${Cmd_MaxPos}:${value}`;
+            break;
+        default:
+            break;
+    }
+    doSend(cmd);
+}
+
+function onsubmit_inp_set_max_vel(index) {
     console.log(`onsubmit: max value from ${index}`);
     var value = inp_max[index].value;
     var cmd = "";
     switch (index) {
-        case 0:
-            cmd = `${Cmd_MaxPos}:${value}`;
+        case 0 - 2:
+            cmd = `${Cmd_MaxVel}:${value};${index}`;
             break;
-        case 1:
+        case 3:
             cmd = `${Cmd_MaxVel}:${value}`;
             break;
         default:
@@ -285,7 +326,7 @@ function onMessage(event) {
         command = event.data.slice(0, idx);
         value = event.data.slice(idx + 1);
 
-        if (command == Cmd_CurrentPos || command == Cmd_CurrentVel || command == Cmd_Err) {
+        if (command == Cmd_CurrentPos || command == Cmd_CurrentVel || command == Cmd_Err || command == Cmd_MaxPos || command == Cmd_MaxVel) {
             let last_split = idx;
             let split = 0;
             while (true) {
@@ -331,7 +372,7 @@ function onMessage(event) {
         case Cmd_CurrentPos: {
             console.log("Positions data:");
             let length = values.length;
-            console.log(`values array has size: ${length} and contains: ${values}`)
+            console.log(`values array has size: ${length} and contains: ${values}`);
             for (let i = 0; i < length; i++) {
                 console.log(`position values received: ${values[i]}`);
                 inp_pos[i].value = values[i];
@@ -341,7 +382,7 @@ function onMessage(event) {
         case Cmd_CurrentVel: {
             console.log("Velocity data:");
             let length = values.length;
-            console.log(`values array has size: ${length} and contains: ${values}`)
+            console.log(`values array has size: ${length} and contains: ${values}`);
             for (let i = 0; i < length; i++) {
                 console.log(`velocity values received: ${values[i]}`);
                 inp_vel[i].value = values[i];
@@ -349,14 +390,37 @@ function onMessage(event) {
             break;
         }
         case Cmd_Err: {
-            console.log("Error data:");
+            console.log(`${command} data:`);
             let length = values.length;
-            console.log(`values array has size: ${length} and contains: ${values}`)
+            console.log(`values array has size: ${length} and contains: ${values}`);
             for (let i = 0; i < length; i++) {
-                console.log(`error values received: ${values[i]}`);
+                console.log(`${command} values received: ${values[i]}`);
                 inp_err[i].value = values[i];
             }
             break;
+        }
+        case Cmd_MaxPos: {
+            console.log("Max pos data:");
+            let length = values.length;
+            console.log(`values array has size: ${length} and contains: ${values}`);
+            for (let i = 0; i < length; i++) {
+                console.log(`max_pos values received: ${values[i]}`);
+                inp_max_pos[i].value = values[i];
+            }
+            break;
+        }
+        case Cmd_MaxVel: {
+            console.log("Max vel data:");
+            let length = values.length;
+            console.log(`values array has size: ${length} and contains: ${values}`);
+            for (let i = 0; i < length; i++) {
+                console.log(`max_pos values received: ${values[i]}`);
+                inp_max_vel[i].value = values[i];
+            }
+            break;
+        }
+        case Cmd_TargetPos: {
+
         }
         default:
             break;
