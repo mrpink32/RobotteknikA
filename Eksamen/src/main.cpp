@@ -265,11 +265,6 @@ void handle_kx(char *command, uint8_t client_num)
 
     if (*(value + 1) == '?')
     {
-        sprintf(MsgBuf, "%sk%c:%f", get_cmd_name(CMD_PID), subtype, *parm_value);
-        web_socket_send(MsgBuf, client_num, false);
-    }
-    else
-    {
         errno = 0;
         char *e;
         double result = strtod(value + 1, &e);
@@ -278,13 +273,15 @@ void handle_kx(char *command, uint8_t client_num)
             *parm_value = result;
             log_d("[%u]: k%c value received %f", client_num, subtype, *parm_value);
             sprintf(MsgBuf, "%sk%c:%f", get_cmd_name(CMD_PID), subtype, *parm_value);
-            web_socket_send(MsgBuf, client_num, true);
+            web_socket_send(MsgBuf, client_num, false);
         }
         else
         {
             log_e("[%u]: illegal format of k%c value received: %s", client_num, subtype, value + 1);
         }
     }
+    web_socket_send(MsgBuf, client_num, false);
+    sprintf(MsgBuf, "%sk%c:%f", get_cmd_name(CMD_PID), subtype, *parm_value);
 }
 
 void handle_pos_req(char *command, uint8_t client_num)
@@ -296,19 +293,16 @@ void handle_pos_req(char *command, uint8_t client_num)
         log_e("[%u]: Bad command %s", client_num, command);
         return;
     }
-
-    if (*(value + 1) == '?')
-    {
-        int32_t data_1 = motor1.get_position();
-        int32_t data_2 = motor2.get_position();
-        int32_t data_3 = motor3.get_position();
-        sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_POS_REQ), data_1, data_2, data_3);
-        web_socket_send(MsgBuf, client_num, false);
-    }
-    else
+    else if (*(value + 1) != '?')
     {
         log_e("[%u]: setting position values is not supported: %s", client_num, command);
+        return;
     }
+    int32_t data_1 = motor1.get_position();
+    int32_t data_2 = motor2.get_position();
+    int32_t data_3 = motor3.get_position();
+    sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_POS_REQ), data_1, data_2, data_3);
+    web_socket_send(MsgBuf, client_num, false);
 }
 
 void handle_vel_req(char *command, uint8_t client_num)
@@ -320,19 +314,16 @@ void handle_vel_req(char *command, uint8_t client_num)
         log_e("[%u]: Bad command %s", client_num, command);
         return;
     }
-
-    if (*(value + 1) == '?')
-    {
-        int32_t data_1 = motor1.get_velocity();
-        int32_t data_2 = motor2.get_velocity();
-        int32_t data_3 = motor3.get_velocity();
-        sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_VEL_REQ), data_1, data_2, data_3);
-        web_socket_send(MsgBuf, client_num, false);
-    }
-    else
+    else if (*(value + 1) != '?')
     {
         log_e("[%u]: setting velocity values is not supported: %s", client_num, command);
+        return;
     }
+    int32_t data_1 = motor1.get_velocity();
+    int32_t data_2 = motor2.get_velocity();
+    int32_t data_3 = motor3.get_velocity();
+    sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_VEL_REQ), data_1, data_2, data_3);
+    web_socket_send(MsgBuf, client_num, false);
 }
 
 void handle_err_req(char *command, uint8_t client_num)
@@ -345,23 +336,55 @@ void handle_err_req(char *command, uint8_t client_num)
         log_e("[%u]: Bad command %s", client_num, command);
         return;
     }
+    else if (*(value + 1) != '?')
+    {
+        log_e("[%u]: setting velocity values is not supported: %s", client_num, command);
+        return;
+    }
+    double data_1 = motor1.position_pid.get_error();
+    double data_2 = motor1.velocity_pid.get_error();
+    double data_3 = motor2.position_pid.get_error();
+    double data_4 = motor2.velocity_pid.get_error();
+    double data_5 = motor3.position_pid.get_error();
+    double data_6 = motor3.velocity_pid.get_error();
+    sprintf(MsgBuf, "%s:%f,%f,%f,%f,%f,%f,", get_cmd_name(CMD_ERR_REQ), data_1, data_2, data_3, data_4, data_5, data_6);
+    web_socket_send(MsgBuf, client_num, false);
+}
 
+void handle_max_pos_req(char *command, uint8_t client_num)
+{
+    char *value = strstr(command, ":");
+
+    if (value == NULL || *value != ':')
+    {
+        log_e("[%u]: Bad command %s", client_num, command);
+        return;
+    }
+    
     if (*(value + 1) == '?')
     {
-        double data_1 = motor1.position_pid.get_error();
-        double data_2 = motor1.velocity_pid.get_error();
-        double data_3 = motor2.position_pid.get_error();
-        double data_4 = motor2.velocity_pid.get_error();
-        double data_5 = motor3.position_pid.get_error();
-        double data_6 = motor3.velocity_pid.get_error();
-        sprintf(MsgBuf, "%s:%f,%f,%f,%f,%f,%f,", get_cmd_name(CMD_ERR_REQ), data_1, data_2, data_3, data_4, data_5, data_6);
+        int32_t data_1 = motor1.get_max_position();
+        int32_t data_2 = motor2.get_max_position();
+        int32_t data_3 = motor3.get_max_position();
+        sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_MAX_POS_REQ), data_1, data_2, data_3);
+        web_socket_send(MsgBuf, client_num, false);
+    }
+
+    errno = 0;
+    char *e;
+    char *data_1 = strtok(value + 1, ',');
+    double result = strtod(value + 1, &e);
+    if (*e == '\0' && errno == 0) // no error
+    {
+        int32_t data_1 = motor1.set_max_position();
+        int32_t data_2 = motor2.set_max_position();
+        int32_t data_3 = motor3.set_max_position();
+        sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_MAX_POS_REQ), data_1, data_2, data_3);
         web_socket_send(MsgBuf, client_num, false);
     }
     else
     {
-        char *e;
-        int32_t result = strtol(value + 1, &e, 10);
-        log_e("[%u]: setting error values is not supported: %s", client_num, value + 1);
+        log_e("[%u]: illegal format of k%c value received: %s", client_num, subtype, value + 1);
     }
 }
 
@@ -373,58 +396,43 @@ void handle_command(uint8_t client_num, uint8_t *payload, size_t length)
 
     switch (get_cmd_value(command))
     {
-        case CMD_TOGGLE:
-            handle_toggle(client_num);
-            break;
-        case CMD_LED_STATE:
-            handle_led_state(command, client_num);
-            break;
-        case CMD_PID:
-            handle_kx(command, client_num);
-            break;
-        case CMD_POS_REQ:
-            handle_pos_req(command, client_num);
-            break;
-        case CMD_VEL_REQ:
-            handle_vel_req(command, client_num);
-            break;
-        case CMD_ERR_REQ:
-            handle_err_req(command, client_num);
-            break;
-        case CMD_MAX_POS_REQ:
-            log_d("Implement handler for request: %s", command);
-            // handle_max_pos(command, client_num);
-            break;
-        case CMD_MAX_VEL_REQ:
-            log_d("Implement handler for request: %s", command);
-            // handle_max_vel(command, client_num);
-            break;
-        case CMD_TARGET_POS:
-            log_d("Implement handler for request: %s", command);
-            // handle_max_vel(command, client_num);
-            break;
-        case CMD_TARGET_VEL:
-            log_d("Implement handler for request: %s", command);
-            // handle_max_vel(command, client_num);
-            break;
-        default:
-            log_e("[%u] Message not recognized", client_num);
+    case CMD_TOGGLE:
+        handle_toggle(client_num);
+        break;
+    case CMD_LED_STATE:
+        handle_led_state(command, client_num);
+        break;
+    case CMD_PID:
+        handle_kx(command, client_num);
+        break;
+    case CMD_POS_REQ:
+        handle_pos_req(command, client_num);
+        break;
+    case CMD_VEL_REQ:
+        handle_vel_req(command, client_num);
+        break;
+    case CMD_ERR_REQ:
+        handle_err_req(command, client_num);
+        break;
+    case CMD_MAX_POS_REQ:
+        log_d("Implement handler for request: %s", command);
+        // handle_max_pos(command, client_num);
+        break;
+    case CMD_MAX_VEL_REQ:
+        log_d("Implement handler for request: %s", command);
+        // handle_max_vel(command, client_num);
+        break;
+    case CMD_TARGET_POS:
+        log_d("Implement handler for request: %s", command);
+        // handle_max_vel(command, client_num);
+        break;
+    case CMD_TARGET_VEL:
+        log_d("Implement handler for request: %s", command);
+        // handle_max_vel(command, client_num);
+        break;
+    default:
+        log_e("[%u] Message not recognized", client_num);
     }
-
-    // if (strcmp(command, cmd_toggle) == 0)
-    //     handle_toggle(client_num); // Toggle LED
-    // else if (strncmp(command, get_cmd_name(CMD_LED_STATE), strlen(get_cmd_name(CMD_LED_STATE))) == 0)
-    //     handle_led_state(command, client_num); // Report the state of the LED
-    // else if (strncmp(command, get_cmd_name(CMD_PID), strlen(get_cmd_name(CMD_PID))) == 0)
-    //     handle_kx(command, client_num); // pid params
-    // else if (strncmp(command, cmd_pos, strlen(get_cmd_name(CMD_POS_REQ))) == 0)
-    //     handle_pos_req(command, client_num); // position request
-    // else if (strncmp(command, get_cmd_name(CMD_VEL_REQ), strlen(get_cmd_name(CMD_VEL_REQ))) == 0)
-    //     handle_vel_req(command, client_num); // velocity request
-    // else if (strncmp(command, cmd_err, strlen(cmd_err)) == 0)
-    //     handle_err_req(command, client_num); // error request
-    // else
-    //     log_e("[%u] Message not recognized", client_num);
 
     WebSocket.connectedClients();
 }
@@ -617,11 +625,11 @@ void pid_task(void *arg)
         motor2.velocity_pid.update(req_vel_2, motor2.get_velocity(), &ctrl_vel2, integration_threshold);
         motor2.hbridge.set_pwm(ctrl_vel2);
         prev_pos_2 = motor2.get_position();
-        
+
         motor3.velocity_pid.update(req_vel_3, motor3.get_velocity(), &ctrl_vel3, integration_threshold);
         motor3.hbridge.set_pwm(ctrl_vel3);
         prev_pos_3 = motor3.get_position();
-        
+
         digitalWrite(PIN_PID_LOOP_2, LOW);
         vTaskDelayUntil(&xLastWakeTime, xTimeIncrement);
     }
@@ -651,11 +659,11 @@ void setup_tasks()
 {
     log_i("starting pid task");
     xTaskCreatePinnedToCore(
-        pid_task,       /* Function to implement the task */
-        "pid_task",     /* Name of the task */
-        5000,             /* Stack size in words */
-        NULL,             /* Task input parameter */
-        3,                /* Priority of the task from 0 to 25, higher number = higher priority */
+        pid_task,        /* Function to implement the task */
+        "pid_task",      /* Name of the task */
+        5000,            /* Stack size in words */
+        NULL,            /* Task input parameter */
+        3,               /* Priority of the task from 0 to 25, higher number = higher priority */
         &PidTaskHandle1, /* Task handle. */
         1);
     // log_i("starting motion task");
@@ -715,7 +723,6 @@ void setup()
     setup_spiffs();
     setup_network();
     setup_tasks();
-
 }
 
 void loop()
