@@ -111,6 +111,16 @@ polyline create_polyline(std::vector<point> points, const char *style) {
 }
 
 
-void interpret_svg(char *buf, int len) {
+void interpret_svg(char *path /*char *buf, int len*/) {
+    // open file
+    printf("path: %s\n", path);
+    printf("opening file...\n");
+    FILE *file = fopen(path, "r");
+    if (file == NULL)
+    {
+        perror("fopen");
+        return;
+    }
+    printf("file opened\n");
     
 }
