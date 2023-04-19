@@ -5,7 +5,6 @@
 #include <WebSocketsServer.h>
 #include <cstdint>
 #include <math.h>
-#include <string>
 #include <string.h>
 #include <Arduino.h>
 #include <motor.h>
@@ -437,29 +436,59 @@ void handle_target(char *command, uint8_t client_num)
     
     if (*(value + 1) == '?')
     {
-        int32_t data_1 = 100; // motor target
+        // placeholder values used util motor debugging has been done
+        int32_t data_1 = 100; // int32_t data_1 = motor1.get_target_position()
         int32_t data_2 = 100; 
         int32_t data_3 = 100;
-        sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_MAX_POS_REQ), data_1, data_2, data_3);
+        int32_t data_4 = 200;
+        int32_t data_5 = 200;
+        int32_t data_6 = 1000;
+        sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_TARGET_POS), data_1, data_2, data_3, data_4, data_5, data_6);
         web_socket_send(MsgBuf, client_num, false);
+        return;
     }
 
     errno = 0;
-    char *e;
-    char *data_1 = strtok(value + 1, ",");
-    double result = strtod(value + 1, &e);
-    if (*e == '\0' && errno == 0) // no error
+    // char *e;
+    // char *result = strtok(value + 1, ",");
+    // char *id = strtok(NULL, ",");
+    int32_t result = atoi(strtok(value + 1, ","));
+    int32_t id = atoi(strtok(NULL, ","));
+    log_d("token: %d | %s", result, id);
+
+    // double result = strtod(value + 1, &e);
+
+    if (errno != 0)
     {
+        log_e("[%u]: Bad command %s", client_num, command);
+        return;
+    }
+
+    switch (id)
+    {
+    case 1:
+        int32_t data = motor1.position_pid
+        sprintf(MsgBuf, "%s:%d,", get_cmd_name(CMD_TARGET_POS), data);
+        break;
+    case 2:
+        int32_t data = motor2.position_pid.set_target(result);
+        sprintf(MsgBuf, "%s:%d,", get_cmd_name(CMD_TARGET_POS), data);
+        break;
+    case 3:
+        int32_t data = motor3.position_pid.set_target(result);
+        sprintf(MsgBuf, "%s:%d,", get_cmd_name(CMD_TARGET_POS), data);
+        break;
+    case 4:
         int32_t data_1 = motor1.position_pid.set_max_ctrl_value(result);
         int32_t data_2 = motor2.position_pid.set_max_ctrl_value(result);
         int32_t data_3 = motor3.position_pid.set_max_ctrl_value(result);
-        sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_MAX_POS_REQ), data_1, data_2, data_3);
-        web_socket_send(MsgBuf, client_num, false);
+        sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_TARGET_POS), data_1, data_2, data_3);
+        break;
+    default:
+        log_e("[%u]: Bad command %s", client_num, command);
+        return;
     }
-    else
-    {
-        log_e("[%u]: setting position values is not supported: %s", client_num, command);
-    }
+    web_socket_send(MsgBuf, client_num, false);
 }
 
 void handle_command(uint8_t client_num, uint8_t *payload, size_t length)
