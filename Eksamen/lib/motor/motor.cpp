@@ -36,7 +36,13 @@ int32_t Motor::get_velocity()
     return this->current_velocity;
 }
 
-void Motor::get_target_position()
+int32_t Motor::get_target_position()
 {
-    return this->requested_position;
+    return this->target_position;
+}
+
+int32_t Motor::set_target_position(double_t target_position)
+{
+    this->target_position = target_position;
+    return target_position;
 }

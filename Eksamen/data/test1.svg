@@ -25,8 +25,8 @@
      inkscape:document-units="mm"
      showgrid="false"
      inkscape:zoom="0.77593294"
-     inkscape:cx="397.5859"
-     inkscape:cy="415.6287"
+     inkscape:cx="163.02955"
+     inkscape:cy="681.11556"
      inkscape:window-width="1891"
      inkscape:window-height="988"
      inkscape:window-x="0"
@@ -84,4 +84,14 @@
      y="100"
      rx="5"
      ry="5" />
+  <rect
+     style="fill:#000000;stroke-width:0.307207;image-rendering:auto"
+     id="rect115"
+     width="116.95866"
+     height="67.856491"
+     x="-160.94603"
+     y="-255.74054"
+     rx="150"
+     ry="150"
+     transform="scale(-1)" />
 </svg>

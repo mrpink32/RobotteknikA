@@ -1,3 +1,4 @@
+#pragma once
 #include <pid.h>
 #include <hbridge.h>
 
@@ -7,8 +8,8 @@ private:
     int64_t current_position = 0;
     int64_t current_velocity = 0;
     // might be better to use integers
-    double_t target_position = 0;
-    double_t target_velocity = 0;
+    int32_t target_position = 0;
+    int32_t target_velocity = 0;
 
 public:
     H_Bridge hbridge;
@@ -32,7 +33,6 @@ public:
 
     int32_t get_target_position();
 
-    int32_t set_target_position();
-
+    int32_t set_target_position(double_t target_position);
 
 };
