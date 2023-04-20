@@ -756,14 +756,14 @@ void pid_task(void *arg)
 
         if (mode_pos)
         {
-            motor1.position_pid.update(req_posy, motor1.get_position(), &ctrl_pos_1, integration_threshold);
-            req_vel_1 = constrain(ctrl_pos_1, -max_vel, max_vel);
+            motor1.position_pid.update(req_posy, motor1.get_position(), &ctrl_pos_1, integrati1n_threshold);
+            motor1.set_target_velocity(constrain(ctrl_pos_1, -motor1.get_max_velocity(), motor1.get_max_velocity())); // req_vel_1 = constrain(ctrl_pos_1, -max_vel, max_vel);
 
             motor2.position_pid.update(req_posy, motor2.get_position(), &ctrl_pos_2, integration_threshold);
-            motor2.set_target_velocity(constrain(ctrl_pos_2, -motor2.get_max_velocity(), motor2.get_max_velocity())) // req_vel_2 = constrain(ctrl_pos_2, -max_vel, max_vel);
+            motor2.set_target_velocity(constrain(ctrl_pos_2, -motor2.get_max_velocity(), motor2.get_max_velocity())); // req_vel_2 = constrain(ctrl_pos_2, -max_vel, max_vel);
 
-                motor3.position_pid.update(req_posy, motor3.get_position(), &ctrl_pos_3, integration_threshold);
-            req_vel_3 = constrain(ctrl_pos_3, -max_vel, max_vel);
+            motor3.position_pid.update(req_posy, motor3.get_position(), &ctrl_pos_3, integration_threshold);
+            motor3.set_target_velocity(constrain(ctrl_pos_3, -motor3.get_max_velocity(), motor3.get_max_velocity())); // req_vel_3 = constrain(ctrl_pos_3, -max_vel, max_vel);
         }
 
         motor1.velocity_pid.update(req_vel_1, motor1.get_velocity(), &ctrl_vel1, integration_threshold);
