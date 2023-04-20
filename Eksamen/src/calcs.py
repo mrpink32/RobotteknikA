@@ -4,10 +4,6 @@ import numpy as np
 types = set(["<rect", "<circle", "<ellipse", "<line", "<polyline", "<polygon", "<squircle", "<polynomial"])
 CONVERSION_RATE = 1486/(2*math.pi)
 
-# def open_file(path):
-#     file = open(path)
-#     return file.read().split()
-
 def find(lst,word):
     for i in range(len(lst)):
         if word in lst[i]:
@@ -46,6 +42,7 @@ class Svg_doc:
         self.data = file.read().split()
 
     def interpret(self):
+        polynomial_lists = []
         self.width = int(self.data[find(self.data,"width")].removeprefix('width="').removesuffix('"').removesuffix("mm"))
         self.height = int(self.data[find(self.data,"height")].removeprefix('height="').removesuffix('"').removesuffix("mm"))
         self.scale = 5/math.sqrt((self.width/2)**2 + (self.height/2)**2)
@@ -60,13 +57,14 @@ class Svg_doc:
             if self.data[i] in types and self.g == 1:
                 if self.data[i] == "<rect":
                     rect = Rect(self.scale, self.width, self.height, self.data, i)
-                    rect.shit()
+                    polynomial_lists.append(rect.shit())
                 if self.data[i] == "<ellipse":
                     ellipse = Ellipse(self.scale, self.width, self.height, self.data, i, precision=self.n*4)
-                    ellipse.shit()
+                    polynomial_lists.append(ellipse.shit())
                 if self.data[i] == "<circle":
                     circle = Circle(self.scale, self.width, self.height, self.data, i, precision=self.n*4)
-                    circle.shit()
+                    polynomial_lists.append(circle.shit())
+        return polynomial_lists
 
 
 class Rect:
@@ -88,30 +86,32 @@ class Rect:
         self.height = scale*float(data[index+find(data[index:],"height=")].removeprefix('height="').removesuffix('"'))
 
     def shit(self):
+        polynomial_list = []
         t1 = self.height
         def vecx(t):
             return self.x
         def vecy(t):
             return t+self.y
-        print(self.calc(t1,vecx,vecy))
+        polynomial_list.append(self.calc(t1,vecx,vecy))
         t1 = self.width
         def vecx(t):
             return self.x+t
         def vecy(t):
             return self.y+self.height
-        print(self.calc(t1,vecx,vecy))
+        polynomial_list.append(self.calc(t1,vecx,vecy))
         t1 = self.height
         def vecx(t):
             return self.x+self.width
         def vecy(t):
             return self.y+self.height-t
-        print(self.calc(t1,vecx,vecy))
+        polynomial_list.append(self.calc(t1,vecx,vecy))
         t1 = self.width
         def vecx(t):
             return self.x+self.width-t
         def vecy(t):
             return self.y
-        print(self.calc(t1,vecx,vecy))
+        polynomial_list.append(self.calc(t1,vecx,vecy))
+        return polynomial_list
 
     def calc(self, t1 ,vecx, vecy):
         self.xt.clear()
@@ -123,9 +123,9 @@ class Rect:
             self.xt.append((t1+t1*math.cos((2*i-1)*math.pi/(2*self.precision)))/2)
         for i in self.xt:
             self.angle(vecx(i),vecy(i),0)
-        p1 = np.polyfit(self.xt,self.dicy[1],self.precision-1)
-        p2 = np.polyfit(self.xt,self.dicy[2],self.precision-1)
-        p3 = np.polyfit(self.xt,self.dicy[3],self.precision-1)
+        p1 = list(np.polyfit(self.xt,self.dicy[1],self.precision-1))
+        p2 = list(np.polyfit(self.xt,self.dicy[2],self.precision-1))
+        p3 = list(np.polyfit(self.xt,self.dicy[3],self.precision-1))
         return (p1, p2, p3)
     
     def angle(self,x,y,l):
@@ -160,7 +160,7 @@ class Ellipse:
             return self.x+self.rx*math.cos(2*t/(self.rx+self.ry))
         def vecy(t):
             return self.y+self.ry*math.sin(2*t/(self.rx+self.ry))
-        print(self.calc(t1,vecx,vecy))
+        return [self.calc(t1,vecx,vecy)]
 
     def calc(self, t1 ,vecx, vecy):
         self.xt.clear()
@@ -172,9 +172,9 @@ class Ellipse:
             self.xt.append((t1+t1*math.cos((2*i-1)*math.pi/(2*self.precision)))/2)
         for i in self.xt:
             self.angle(vecx(i),vecy(i),0)
-        p1 = np.polyfit(self.xt,self.dicy[1],self.precision-1)
-        p2 = np.polyfit(self.xt,self.dicy[2],self.precision-1)
-        p3 = np.polyfit(self.xt,self.dicy[3],self.precision-1)
+        p1 = list(np.polyfit(self.xt,self.dicy[1],self.precision-1))
+        p2 = list(np.polyfit(self.xt,self.dicy[2],self.precision-1))
+        p3 = list(np.polyfit(self.xt,self.dicy[3],self.precision-1))
         return (p1, p2, p3)
     
     def angle(self,x,y,l):
@@ -206,7 +206,7 @@ class Circle:
             return self.x+self.r*math.cos(t/self.r)
         def vecy(t):
             return self.y+self.r*math.sin(t/self.r)
-        print(self.calc(t1,vecx,vecy))
+        return [self.calc(t1,vecx,vecy)]
 
     def calc(self, t1 ,vecx, vecy):
         self.xt.clear()
@@ -218,9 +218,9 @@ class Circle:
             self.xt.append((t1+t1*math.cos((2*i-1)*math.pi/(2*self.precision)))/2)
         for i in self.xt:
             self.angle(vecx(i),vecy(i),0)
-        p1 = np.polyfit(self.xt,self.dicy[1],self.precision-1)
-        p2 = np.polyfit(self.xt,self.dicy[2],self.precision-1)
-        p3 = np.polyfit(self.xt,self.dicy[3],self.precision-1)
+        p1 = list(np.polyfit(self.xt,self.dicy[1],self.precision-1))
+        p2 = list(np.polyfit(self.xt,self.dicy[2],self.precision-1))
+        p3 = list(np.polyfit(self.xt,self.dicy[3],self.precision-1))
         return (p1, p2, p3)
     
     def angle(self,x,y,l):
