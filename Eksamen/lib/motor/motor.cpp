@@ -1,4 +1,4 @@
-#include <motor.h>
+#include "motor.h"
 
 Motor::Motor(int32_t pin_pwm, int32_t pin_ina, int32_t pin_inb,
              int32_t freq_hz, int32_t resolution_bit,
@@ -41,8 +41,19 @@ int32_t Motor::get_target_position()
     return this->target_position;
 }
 
-int32_t Motor::set_target_position(double_t target_position)
+int32_t Motor::set_target_position(int32_t target_position)
 {
     this->target_position = target_position;
     return target_position;
+}
+
+int32_t Motor::get_target_velocity()
+{
+    return this->target_velocity;
+}
+
+int32_t Motor::set_target_velocity(int32_t target_velocity)
+{
+    this->target_velocity = target_velocity;
+    return target_velocity;
 }

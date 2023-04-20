@@ -1,6 +1,6 @@
 #pragma once
-#include <pid.h>
-#include <hbridge.h>
+#include "pid.h"
+#include "hbridge.h"
 
 class Motor
 {
@@ -33,6 +33,11 @@ public:
 
     int32_t get_target_position();
 
-    int32_t set_target_position(double_t target_position);
+    int32_t set_target_position(int32_t target_position);
+
+    int32_t get_target_velocity();
+    
+    int32_t set_target_velocity(int32_t target_velocity);
+
 
 };

@@ -17,17 +17,15 @@ using namespace std;
 const char *SSID = "grim";
 const char *PASSWORD = "grimgrim";
 
-enum
-{
+enum Commands {
     CMD_PID,
     CMD_TOGGLE,
     CMD_ERR_REQ,
     CMD_POS_REQ,
     CMD_VEL_REQ,
     CMD_LED_STATE,
-    CMD_MAX_POS_REQ,
-    CMD_MAX_VEL_REQ,
-    CMD_MAX_ERR_REQ,
+    CMD_MAX_POS,
+    CMD_MAX_VEL,
     CMD_PREV_ERR,
     CMD_TARGET_POS,
     CMD_TARGET_VEL,
@@ -47,20 +45,12 @@ static cmd_t cmds[] = {
     {"led_state", CMD_LED_STATE},
     {"current_pos", CMD_POS_REQ},
     {"current_vel", CMD_VEL_REQ},
-    {"max_pos", CMD_MAX_POS_REQ},
-    {"max_vel", CMD_MAX_VEL_REQ},
+    {"max_pos", CMD_MAX_POS},
+    {"max_vel", CMD_MAX_VEL},
     {"target_pos", CMD_TARGET_POS},
     {"target_vel", CMD_TARGET_VEL},
 };
 
-// const char *cmd_toggle = "toggle";
-// const char *cmd_ledstate = "led_state";
-// const char *cmd_pid = "pid_";
-// const char *cmd_pos = "pos";
-// const char *cmd_max_pos = "max_pos";
-// const char *cmd_vel = "vel";
-// const char *cmd_max_vel = "max_vel";
-// const char *cmd_err = "err";
 
 const int32_t WIFI_CHANNEL = 9; // alle grupper skal have hver sin kanal
 const int32_t DNS_PORT = 53;
@@ -75,14 +65,11 @@ TaskHandle_t MotionTaskHandle;
 
 char MsgBuf[64];
 int32_t LedState = 0;
-// double KpVal = 3.1415;
-// double KiVal = 2.71;
-// double KdVal = 42.0;
 
-TaskHandle_t PidTaskHandle1;
-TaskHandle_t PidTaskHandle2;
-TaskHandle_t PidTaskHandle_3;
-TaskHandle_t PositionTaskHandle;
+TaskHandle_t PidTaskHandle;
+// TaskHandle_t PidTaskHandle2;
+// TaskHandle_t PidTaskHandle_3;
+// TaskHandle_t PositionTaskHandle;
 ESP32Encoder encoder1;
 ESP32Encoder encoder2;
 ESP32Encoder encoder3;
@@ -102,6 +89,7 @@ Motor motor2(PIN_HBRIDGE_PWM_2, PIN_HBRIDGE_INA_2, PIN_HBRIDGE_INB_2,
              PWM_FREQ_HZ, PWM_RES_BITS, PWM_CH_2, MAX_CTRL_VALUE, DT_S);
 Motor motor3(PIN_HBRIDGE_PWM_3, PIN_HBRIDGE_INA_3, PIN_HBRIDGE_INB_3,
              PWM_FREQ_HZ, PWM_RES_BITS, PWM_CH_3, MAX_CTRL_VALUE, DT_S);
+Motor motors[3] = {motor1, motor2, motor3};
 
 const double integration_threshold = 200;
 
@@ -115,11 +103,9 @@ volatile double dest_posy;
 // volatile double_t current_vel_1;
 // volatile double_t current_vel_2;
 // volatile double_t current_vel_3;
-volatile double max_vel = 300;
+// volatile double max_vel = 300;
 volatile double device_x = 0;
 volatile double device_y = 0;
-volatile double device_rotation = 0;
-volatile double needed_rotation = 0;
 const double b = 24.5;
 const double r = 5.05;
 
@@ -350,7 +336,7 @@ void handle_err_req(char *command, uint8_t client_num)
     web_socket_send(MsgBuf, client_num, false);
 }
 
-void handle_max_pos_req(char *command, uint8_t client_num)
+void handle_max_pos(char *command, uint8_t client_num)
 {
     char *value = strstr(command, ":");
 
@@ -365,7 +351,7 @@ void handle_max_pos_req(char *command, uint8_t client_num)
         int32_t data_1 = motor1.position_pid.get_max_ctrl_value();
         int32_t data_2 = motor2.position_pid.get_max_ctrl_value();
         int32_t data_3 = motor3.position_pid.get_max_ctrl_value();
-        sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_MAX_POS_REQ), data_1, data_2, data_3);
+        sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_MAX_POS), data_1, data_2, data_3);
         web_socket_send(MsgBuf, client_num, false);
     }
 
@@ -378,7 +364,7 @@ void handle_max_pos_req(char *command, uint8_t client_num)
         int32_t data_1 = motor1.position_pid.set_max_ctrl_value(result);
         int32_t data_2 = motor2.position_pid.set_max_ctrl_value(result);
         int32_t data_3 = motor3.position_pid.set_max_ctrl_value(result);
-        sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_MAX_POS_REQ), data_1, data_2, data_3);
+        sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_MAX_POS), data_1, data_2, data_3);
         web_socket_send(MsgBuf, client_num, false);
     }
     else
@@ -387,7 +373,7 @@ void handle_max_pos_req(char *command, uint8_t client_num)
     }
 }
 
-void handle_max_vel_req(char *command, uint8_t client_num)
+void handle_max_vel(char *command, uint8_t client_num)
 {
     char *value = strstr(command, ":");
 
@@ -402,7 +388,7 @@ void handle_max_vel_req(char *command, uint8_t client_num)
         int32_t data_1 = motor1.velocity_pid.get_max_ctrl_value();
         int32_t data_2 = motor2.velocity_pid.get_max_ctrl_value();
         int32_t data_3 = motor3.velocity_pid.get_max_ctrl_value();
-        sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_MAX_VEL_REQ), data_1, data_2, data_3);
+        sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_MAX_VEL), data_1, data_2, data_3);
         web_socket_send(MsgBuf, client_num, false);
     }
 
@@ -415,7 +401,7 @@ void handle_max_vel_req(char *command, uint8_t client_num)
         int32_t data_1 = motor1.velocity_pid.set_max_ctrl_value(result);
         int32_t data_2 = motor2.velocity_pid.set_max_ctrl_value(result);
         int32_t data_3 = motor3.velocity_pid.set_max_ctrl_value(result);
-        sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_MAX_VEL_REQ), data_1, data_2, data_3);
+        sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_MAX_VEL), data_1, data_2, data_3);
         web_socket_send(MsgBuf, client_num, false);
     }
     else
@@ -424,7 +410,7 @@ void handle_max_vel_req(char *command, uint8_t client_num)
     }
 }
 
-void handle_target(char *command, uint8_t client_num)
+void handle_target_pos(char *command, uint8_t client_num)
 {
     char *value = strstr(command, ":");
 
@@ -437,26 +423,18 @@ void handle_target(char *command, uint8_t client_num)
     if (*(value + 1) == '?')
     {
         // placeholder values used util motor debugging has been done
-        int32_t data_1 = 100; // int32_t data_1 = motor1.get_target_position()
-        int32_t data_2 = 100; 
-        int32_t data_3 = 100;
-        int32_t data_4 = 200;
-        int32_t data_5 = 200;
-        int32_t data_6 = 1000;
-        sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_TARGET_POS), data_1, data_2, data_3, data_4, data_5, data_6);
+        int32_t data_1 = motor1.get_target_position();
+        int32_t data_2 = motor2.get_target_position();
+        int32_t data_3 = motor3.get_target_position();
+        sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_TARGET_POS), data_1, data_2, data_3);
         web_socket_send(MsgBuf, client_num, false);
         return;
     }
 
     errno = 0;
-    // char *e;
-    // char *result = strtok(value + 1, ",");
-    // char *id = strtok(NULL, ",");
     int32_t result = atoi(strtok(value + 1, ","));
     int32_t id = atoi(strtok(NULL, ","));
     log_d("token: %d | %s", result, id);
-
-    // double result = strtod(value + 1, &e);
 
     if (errno != 0)
     {
@@ -466,24 +444,99 @@ void handle_target(char *command, uint8_t client_num)
 
     switch (id)
     {
+    case 0:
+    {
+        int32_t data = motor1.set_target_position(result);
+        sprintf(MsgBuf, "%s:%d, %d,", get_cmd_name(CMD_TARGET_POS), id, data);
+    }
+    break;
     case 1:
-        int32_t data = motor1.position_pid
-        sprintf(MsgBuf, "%s:%d,", get_cmd_name(CMD_TARGET_POS), data);
-        break;
+    {
+        int32_t data = motor2.set_target_position(result);
+        sprintf(MsgBuf, "%s:%d, %d,", get_cmd_name(CMD_TARGET_POS), id, data);
+    }
+    break;
     case 2:
-        int32_t data = motor2.position_pid.set_target(result);
-        sprintf(MsgBuf, "%s:%d,", get_cmd_name(CMD_TARGET_POS), data);
-        break;
+    {
+        int32_t data = motor3.set_target_position(result);
+        sprintf(MsgBuf, "%s:%d, %d,", get_cmd_name(CMD_TARGET_POS), id, data);
+    }
+    break;
     case 3:
-        int32_t data = motor3.position_pid.set_target(result);
-        sprintf(MsgBuf, "%s:%d,", get_cmd_name(CMD_TARGET_POS), data);
-        break;
-    case 4:
-        int32_t data_1 = motor1.position_pid.set_max_ctrl_value(result);
-        int32_t data_2 = motor2.position_pid.set_max_ctrl_value(result);
-        int32_t data_3 = motor3.position_pid.set_max_ctrl_value(result);
-        sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_TARGET_POS), data_1, data_2, data_3);
-        break;
+    {
+        int32_t data_1 = motor1.set_target_position(result);
+        int32_t data_2 = motor2.set_target_position(result);
+        int32_t data_3 = motor3.set_target_position(result);
+        sprintf(MsgBuf, "%s:%d,%d,%d,%d,", get_cmd_name(CMD_TARGET_POS), id, data_1, data_2, data_3);
+    }
+    break;
+    default:
+        log_e("[%u]: Bad command %s", client_num, command);
+        return;
+    }
+    web_socket_send(MsgBuf, client_num, false);
+}
+
+void handle_target_vel(char *command, uint8_t client_num)
+{
+    char *value = strstr(command, ":");
+
+    if (value == NULL || *value != ':')
+    {
+        log_e("[%u]: Bad command %s", client_num, command);
+        return;
+    }
+    
+    if (*(value + 1) == '?')
+    {
+        // placeholder values used util motor debugging has been done
+        int32_t data_1 = motor1.get_target_velocity();
+        int32_t data_2 = motor2.get_target_velocity();
+        int32_t data_3 = motor3.get_target_velocity();
+        sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_TARGET_VEL), data_1, data_2, data_3);
+        web_socket_send(MsgBuf, client_num, false);
+        return;
+    }
+
+    errno = 0;
+    int32_t result = atoi(strtok(value + 1, ","));
+    int32_t id = atoi(strtok(NULL, ","));
+    log_d("token: %d | %s", result, id);
+
+    if (errno != 0)
+    {
+        log_e("[%u]: Bad command %s", client_num, command);
+        return;
+    }
+
+    switch (id)
+    {
+    case 0:
+    {
+        int32_t data = motor1.set_target_velocity(result);
+        sprintf(MsgBuf, "%s:%d, %d,", get_cmd_name(CMD_TARGET_VEL), id, data);
+    }
+    break;
+    case 1:
+    {
+        int32_t data = motor2.set_target_velocity(result);
+        sprintf(MsgBuf, "%s:%d,", get_cmd_name(CMD_TARGET_VEL), data);
+    }
+    break;
+    case 2:
+    {
+        int32_t data = motor3.set_target_velocity(result);
+        sprintf(MsgBuf, "%s:%d,", get_cmd_name(CMD_TARGET_VEL), data);
+    }
+    break;
+    case 3:
+    {
+        int32_t data_1 = motor1.set_target_velocity(result);
+        int32_t data_2 = motor2.set_target_velocity(result);
+        int32_t data_3 = motor3.set_target_velocity(result);
+        sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_TARGET_VEL), data_1, data_2, data_3);
+    }
+    break;
     default:
         log_e("[%u]: Bad command %s", client_num, command);
         return;
@@ -517,21 +570,21 @@ void handle_command(uint8_t client_num, uint8_t *payload, size_t length)
     case CMD_ERR_REQ:
         handle_err_req(command, client_num);
         break;
-    case CMD_MAX_POS_REQ:
-        handle_max_pos_req(command, client_num);
+    case CMD_MAX_POS:
+        handle_max_pos(command, client_num);
         // log_d("Implement handler for request: %s", command);
         break;
-    case CMD_MAX_VEL_REQ:
+    case CMD_MAX_VEL:
         // log_d("Implement handler for request: %s", command);
-        handle_max_vel_req(command, client_num);
+        handle_max_vel(command, client_num);
         break;
     case CMD_TARGET_POS:
         // log_d("Implement handler for request: %s", command);
-        handle_target(command, client_num);
+        handle_target_pos(command, client_num);
         break;
     case CMD_TARGET_VEL:
-        log_d("Implement handler for request: %s", command);
-        // handle_max_vel(command, client_num);
+        // log_d("Implement handler for request: %s", command);
+        handle_target_vel(command, client_num);
         break;
     default:
         log_e("[%u] Message not recognized", client_num);
@@ -656,35 +709,6 @@ void setup_network()
     WebSocket.onEvent(onWebSocketEvent);
 }
 
-// double_t DotProduct(std::vector<double_t> vec_1, std::vector<double_t> vec_2)
-// {
-//     double_t result = 0;
-//     if (vec_1.size() != vec_2.size())
-//     {
-//         return result;
-//     }
-//     for (size_t i = 0; i < vec_1.size(); i++)
-//     {
-//         result += vec_1[i] * vec_2[i];
-//     }
-//     return result;
-// }
-
-// vector<vector<double_t>> MatrixProduct(vector<vector<double_t>> matrix, vector<double_t> vector)
-// {
-//     int32_t height = matrix.size();
-//     int32_t width = vector.size();
-//     vector<vector<double_t>> result = vector<vector<double_t>>();
-//     for (size_t i = 0; i < height; i++)
-//     {
-//         for (size_t j = 0; j < width; j++)
-//         {
-//             result[i][j] = DotProduct(matrix[i], vector);
-//         }
-//     }
-//     return result;
-// }
-
 void pid_task(void *arg)
 {
     TickType_t xTimeIncrement = configTICK_RATE_HZ * DT_S;
@@ -697,9 +721,9 @@ void pid_task(void *arg)
     int64_t prev_pos_3 = motor3.get_position();
     for (;;)
     { // loop tager mindre end 18us * 2
-        double_t req_vel_1 = 0;
-        double_t req_vel_2 = 0;
-        double_t req_vel_3 = 0;
+        motor1.set_target_velocity(0); // double_t req_vel_1 = 0;
+        motor2.set_target_velocity(0); // double_t req_vel_2 = 0;
+        motor3.set_target_velocity(0); // double_t req_vel_3 = 0;
         digitalWrite(PIN_PID_LOOP_2, HIGH);
 
         motor1.set_position(encoder1.getCount());
@@ -715,7 +739,8 @@ void pid_task(void *arg)
             req_vel_1 = constrain(ctrl_pos_1, -max_vel, max_vel);
 
             motor2.position_pid.update(req_posy, motor2.get_position(), &ctrl_pos_2, integration_threshold);
-            req_vel_2 = constrain(ctrl_pos_2, -max_vel, max_vel);
+            motor2.set_target_velocity(constrain(ctrl_pos_2, -motor2.get_max_velocity(), motor2.get_max_velocity())) // req_vel_2 = constrain(ctrl_pos_2, -max_vel, max_vel);
+
 
             motor3.position_pid.update(req_posy, motor3.get_position(), &ctrl_pos_3, integration_threshold);
             req_vel_3 = constrain(ctrl_pos_3, -max_vel, max_vel);
@@ -725,7 +750,7 @@ void pid_task(void *arg)
         motor1.hbridge.set_pwm(ctrl_vel1);
         prev_pos_1 = motor1.get_position();
 
-        motor2.velocity_pid.update(req_vel_2, motor2.get_velocity(), &ctrl_vel2, integration_threshold);
+        motor2.velocity_pid.update(motor2.get_target_velocity(), motor2.get_velocity(), &ctrl_vel2, integration_threshold);
         motor2.hbridge.set_pwm(ctrl_vel2);
         prev_pos_2 = motor2.get_position();
 
@@ -767,7 +792,7 @@ void setup_tasks()
         5000,            /* Stack size in words */
         NULL,            /* Task input parameter */
         3,               /* Priority of the task from 0 to 25, higher number = higher priority */
-        &PidTaskHandle1, /* Task handle. */
+        &PidTaskHandle, /* Task handle. */
         1);
     // log_i("starting motion task");
     // xTaskCreatePinnedToCore(

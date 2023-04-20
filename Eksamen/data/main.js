@@ -71,20 +71,21 @@ var ctx_onoff;          // Context to draw robot on off state on
 // var par_led_intensity;  // Paragraph that shows led intensity
 // var inp_slider;         // Slider that sets pwm value and thus led intensity 
 // pid subsystem vars 
-var btn_set_kx = [];    // Array of Buttons that When clicked submits kx value to robot
-var inp_kx = [];        // Array of TextAreas where user can enter kx value
-
-var inp_pos = [];       // Array of Inputs to change and display motor positions
-var inp_vel = [];       // Array of Inputs to change and display motor velocities
-var inp_target = [];    // Array of Inputs to change and display motor pid target values
-var inp_err = [];       // Array of Inputs to display motor pid errors
-var inp_max_pos = [];   // Array of Inputs to change and display max motor values
-var inp_max_vel = [];   // Array of Inputs to change and display max motor values
+var btn_set_kx = [];        // Array of Buttons that When clicked submits kx value to robot
+var inp_kx = [];            // Array of TextAreas where user can enter kx value
+var inp_pos = [];           // Array of Inputs to change and display motor positions
+var inp_vel = [];           // Array of Inputs to change and display motor velocities
+var inp_target_pos = [];    // Array of Inputs to change and display motor pid target values
+var inp_target_vel = [];    // Array of Inputs to change and display motor pid target values
+var inp_err = [];           // Array of Inputs to display motor pid errors
+var inp_max_pos = [];       // Array of Inputs to change and display max motor values
+var inp_max_vel = [];       // Array of Inputs to change and display max motor values
 
 
 function get_url() {
     return "ws://" + window.location.hostname + ":1337/";
 }
+
 
 function turn_off() {
     console.log("LED is off");
@@ -93,6 +94,7 @@ function turn_off() {
     btn_onoff.innerHTML = "Turn on";
 }
 
+
 function turn_on() {
     console.log("LED is on");
     ctx_onoff.fillStyle = "red";
@@ -100,9 +102,9 @@ function turn_on() {
     btn_onoff.innerHTML = "Turn off";
 }
 
+
 // This is called when the page finishes loading
 function init() {
-
     // Assign page elements to variables
     btn_onoff = document.getElementById("btn_onoff");
     btn_onoff.onclick = onclick_btn_onoff;
@@ -132,19 +134,21 @@ function init() {
         inp_vel[i].value = "0";
     }
     
-    // 8 if global should have a set
-    for (let i = 0; i < 6; i++) {
-        inp_target[i] = document.getElementById(`inp_target_${i}`);
-        inp_target[i].value = "0";
-        inp_target[i].onchange = function (event) { console.log(event); onsubmit_inp_set_target(i); }
-    }
 
     for (let i = 0; i < 6; i++) {
         inp_err[i] = document.getElementById(`inp_err_${i}`);
         inp_err[i].value = "0";
     }
+    
 
     for (let i = 0; i < 4; i++) {
+        inp_target_pos[i] = document.getElementById(`inp_target_pos_${i}`);
+        inp_target_pos[i].value = "0";
+        inp_target_pos[i].onchange = function (event) { console.log(event); onsubmit_inp_set_target_pos(i); }
+        inp_target_vel[i] = document.getElementById(`inp_target_vel_${i}`);
+        inp_target_vel[i].value = "0";
+        inp_target_vel[i].onchange = function (event) { console.log(event); onsubmit_inp_set_target_vel(i); }
+        
         inp_max_pos[i] = document.getElementById(`inp_max_pos_${i}`);
         inp_max_pos[i].value = "0";
         inp_max_pos[i].onchange = function (event) { console.log(event); onsubmit_inp_set_max_pos(i); }
@@ -152,7 +156,6 @@ function init() {
         inp_max_vel[i].value = "0";
         inp_max_vel[i].onchange = function (event) { console.log(event); onsubmit_inp_set_max_vel(i); }
     }
-
     
 
     // Draw circle in cvs_onoff
@@ -168,10 +171,12 @@ function init() {
     wsConnect(url);
 }
 
+
 // Called whenever the HTML button is pressed
 function onclick_btn_onoff() {
     doSend(Cmd_Toggle);
 }
+
 
 // Called whenever a set kp, ki or kd button is pressed    
 function onclick_btn_set_kx(parm) {
@@ -181,66 +186,38 @@ function onclick_btn_set_kx(parm) {
     doSend(cmd);
 }
 
-function onsubmit_inp_set_target(index) {
+
+function onsubmit_inp_set_target_pos(index) {
     console.log(`onsubmit: target from ${index}`);
-    var value = inp_target[index].value;
+    var value = inp_target_pos[index].value;
     var cmd = `${Cmd_TargetPos}:${value},${index},`;
     doSend(cmd);
 }
 
-// function onsubmit_inp_set_max(index) {
-//     console.log(`onsubmit: max value from ${index}`);
-//     var value = inp_max[index].value;
-//     var cmd = "";
-//     switch (index) {
-//         case 0 && 2 && 4:
-//             cmd = `${Cmd_MaxVel}:${value};${index}`;
-//             break;
-//         case 6:
-//             cmd = `${Cmd_MaxPos}:${value}`;
-//             break;
-//         case 7:
-//             cmd = `${Cmd_MaxVel}:${value}`;
-//             break;
-//         default:
-//             break;
-//     }
-//     doSend(cmd);
-// }
+
+function onsubmit_inp_set_target_vel(index) {
+    console.log(`onsubmit: target from ${index}`);
+    var value = inp_target_vel[index].value;
+    var cmd = `${Cmd_TargetVel}:${value},${index},`;
+    doSend(cmd);
+}
+
 
 function onsubmit_inp_set_max_pos(index) {
     console.log(`onsubmit: max value from ${index}`);
     var value = inp_max_pos[index].value;
-    var cmd = "";
-    switch (index) {
-        case 0 - 2:
-            cmd = `${Cmd_MaxPos}:${value};${index}`;
-            break;
-        case 3:
-            cmd = `${Cmd_MaxPos}:${value}`;
-            break;
-        default:
-            break;
-    }
+    var cmd = `${Cmd_MaxPos}:${value};${index}`;
     doSend(cmd);
 }
 
+
 function onsubmit_inp_set_max_vel(index) {
     console.log(`onsubmit: max value from ${index}`);
-    var value = inp_max[index].value;
-    var cmd = "";
-    switch (index) {
-        case 0 - 2:
-            cmd = `${Cmd_MaxVel}:${value};${index}`;
-            break;
-        case 3:
-            cmd = `${Cmd_MaxVel}:${value}`;
-            break;
-        default:
-            break;
-    }
+    var value = inp_max_vel[index].value;
+    var cmd = `${Cmd_MaxVel}:${value};${index}`;
     doSend(cmd);
 }
+
 
 function request_all_data() {
     doSend(Cmd_LedState + ":?");
