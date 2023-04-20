@@ -10,29 +10,8 @@ def find(lst,word):
             return i
     return -1
 
-def calc(prec, xt, dicy, t1 ,vecx, vecy):
-    for i in range(1,prec+1):
-        xt.append((t1+t1*math.cos((2*i-1)*math.pi/(2*prec)))/2)
-    for i in xt:
-        angle(vecx(i),vecy(i),0,dicy)
-    #print(xt)
-    #print(dicy[1])
-    #print(dicy)
-    p1 = np.polyfit(xt,dicy[1],prec-1)
-    p2 = np.polyfit(xt,dicy[2],prec-1)
-    p3 = np.polyfit(xt,dicy[3],prec-1)
-    return (p1, p2, p3)
 
-def angle(x,y,l,dicy):
-    l += 1
-    a = math.sqrt(-15625*x**4 + (-31250*y**2 + 559925)*x**2 - 15625*y**4 + 273700*y**2 + 6780908)
-    #print('hi')
-    dicy[l].append(CONVERSION_RATE*math.atan2(6752.971963 - 771.0280374*x**2 + 1.168224299*x*a - 771.0280374*y**2, 6.168224299 * a + (146.0280374*x**2 + 146.0280374*y**2 - 1278.971963)*x))
-    if l < 3:
-        angle(-x/2-math.sqrt(3)*y/2,-y/2+math.sqrt(3)*x/2,l,dicy)
-
-
-class Svg_doc:
+class SvgHandler:
     height = 0
     width = 0
     scale = 0
@@ -231,7 +210,7 @@ class Circle:
             self.angle(-x/2-math.sqrt(3)*y/2,-y/2+math.sqrt(3)*x/2,l)
 
 def main():
-    svg = Svg_doc("RobotteknikA/Eksamen/data/test2.svg")
+    svg = SvgHandler("RobotteknikA/Eksamen/data/test2.svg")
     svg.interpret()
 
 

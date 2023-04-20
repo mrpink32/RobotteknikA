@@ -1,4 +1,3 @@
-#pragma once
 #include <ESP32Encoder.h>
 #include <WiFi.h>
 #include <SPIFFS.h>
@@ -272,7 +271,6 @@ void handle_kx(char *command, uint8_t client_num)
     default:
         log_e("[%u]: Bad command %s", client_num, command);
         return;
-        break;
     }
 
     if (*(value + 1) == '?')
@@ -285,15 +283,15 @@ void handle_kx(char *command, uint8_t client_num)
             *parm_value = result;
             log_d("[%u]: k%c value received %f", client_num, subtype, *parm_value);
             sprintf(MsgBuf, "%sk%c:%f", get_command_name(CMD_PID), subtype, *parm_value);
-            web_socket_send(MsgBuf, client_num, false);
+            web_socket_send(MsgBuf, client_num, true);
         }
         else
         {
             log_e("[%u]: illegal format of k%c value received: %s", client_num, subtype, value + 1);
         }
     }
-    web_socket_send(MsgBuf, client_num, false);
     sprintf(MsgBuf, "%sk%c:%f", get_command_name(CMD_PID), subtype, *parm_value);
+    web_socket_send(MsgBuf, client_num, true);
 }
 
 void handle_pos_req(char *command, uint8_t client_num)
