@@ -2,6 +2,7 @@ import websocket
 from datetime import datetime
 import time
 import _thread as thread
+from calcs import *
 
 class websocket_data:
     def __init__(self):
@@ -44,8 +45,8 @@ class websocket_data:
         self.ws.send("toggle")
 
     def set_slider(self, value):
-        
-        self.ws.send(f"sli:{value}")
+        svg = Svg_doc(value)
+        self.ws.send(f"sli:{svg.interpret()}")
 
     def set_kx(self, x, value):
         self.ws.send(f"pid_{x}:{value}")
