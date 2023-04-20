@@ -44,6 +44,7 @@ class websocket_data:
         self.ws.send("toggle")
 
     def set_slider(self, value):
+        
         self.ws.send(f"sli:{value}")
 
     def set_kx(self, x, value):

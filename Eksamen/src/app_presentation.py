@@ -4,6 +4,7 @@
 from tkinter import *
 from tkinter.font import Font
 import app_logic
+from calcs import *
 
 
 class UI(Frame):
@@ -48,10 +49,15 @@ class UI(Frame):
         btn_onoff.grid(row=2, column=0, sticky=W, padx=16)
         cvs_stat.grid(row=2, column=1, sticky=W)
 
+    def grim(x) -> None:
+        svg = Svg_doc(x)
+        svg.interpret()
+
     def render_slider(self):
         ntr_path = Entry(self, width=20, bd=2, relief="ridge")
         btn_path = Button(
-            self, text='Set path', width=12, command=lambda x='path': self.logic.set_path(x, ntr_path.get()), bd=2, relief="ridge")
+        #self.logic.set_path(x, ntr_path.get())
+            self, text='Set path', width=12, command=lambda x='path': grim(x), bd=2, relief="ridge")
         # sli_slider = Scale(self, from_=0, to=100, orient=HORIZONTAL, showvalue=0, highlightthickness=0, 
         #     troughcolor='light gray', cursor='arrow', bg='white', width=24)
         # sli_slider.bind("<ButtonRelease-1>",
