@@ -57,7 +57,7 @@ class UI(Frame):
         ntr_path = Entry(self, width=20, bd=2, relief="ridge")
         btn_path = Button(
         #self.logic.set_path(x, ntr_path.get())
-            self, text='Set path', width=12, command=lambda x='path': grim(x), bd=2, relief="ridge")
+            self, text='Set path', width=12, command=lambda x='path': self.grim(x), bd=2, relief="ridge")
         # sli_slider = Scale(self, from_=0, to=100, orient=HORIZONTAL, showvalue=0, highlightthickness=0, 
         #     troughcolor='light gray', cursor='arrow', bg='white', width=24)
         # sli_slider.bind("<ButtonRelease-1>",
