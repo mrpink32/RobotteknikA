@@ -206,7 +206,7 @@ function onsubmit_inp_set_target_vel(index) {
 function onsubmit_inp_set_max_pos(index) {
     console.log(`onsubmit: max value from ${index}`);
     var value = inp_max_pos[index].value;
-    var cmd = `${Cmd_MaxPos}:${value};${index}`;
+    var cmd = `${Cmd_MaxPos}:${value},${index}`;
     doSend(cmd);
 }
 
@@ -346,7 +346,8 @@ function onMessage(event) {
             console.log(`kd value received: ${value}`);
             inp_kx["kd"].value = value;
             break;
-        case Cmd_CurrentPos: {
+        case Cmd_CurrentPos:
+        {
             console.log("Positions data:");
             let length = values.length;
             console.log(`values array has size: ${length} and contains: ${values}`);
@@ -356,7 +357,8 @@ function onMessage(event) {
             }
             break;
         }
-        case Cmd_CurrentVel: {
+        case Cmd_CurrentVel:
+        {
             console.log("Velocity data:");
             let length = values.length;
             console.log(`values array has size: ${length} and contains: ${values}`);
@@ -366,7 +368,8 @@ function onMessage(event) {
             }
             break;
         }
-        case Cmd_Err: {
+        case Cmd_Err:
+        {
             console.log(`${command} data:`);
             let length = values.length;
             console.log(`values array has size: ${length} and contains: ${values}`);

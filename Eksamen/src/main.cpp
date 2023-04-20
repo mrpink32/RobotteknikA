@@ -162,6 +162,13 @@ const char *get_command_name(int32_t command_value)
     return NULL;
 }
 
+/**
+ * Sends a WebSocket message to a client or to all connected clients.
+ *
+ * @param buffer The message to send.
+ * @param client_num The index of the client to send the message to, if broadcast is false.
+ * @param broadcast Whether to send the message to all connected clients (true) or just one (false).
+ */
 void web_socket_send(const char *buffer, uint8_t client_num, bool broadcast)
 {
     if (broadcast)
@@ -176,6 +183,12 @@ void web_socket_send(const char *buffer, uint8_t client_num, bool broadcast)
     }
 }
 
+/**
+ * Toggles an LED on and off and sends a message to a web socket client.
+ *
+ * @param client_num The number of the web socket client.
+ * @return void
+ */
 void handle_toggle(int32_t client_num)
 {
     LedState = LedState ? 0 : 1;
@@ -367,24 +380,53 @@ void handle_max_pos(char *command, uint8_t client_num)
         int32_t data_3 = motor3.position_pid.get_max_ctrl_value();
         sprintf(MsgBuf, "%s:%d,%d,%d,", get_command_name(CMD_MAX_POS), data_1, data_2, data_3);
         web_socket_send(MsgBuf, client_num, false);
+        return;
     }
 
     errno = 0;
-    char *e;
-    char *data_1 = strtok(value + 1, ",");
-    double result = strtod(value + 1, &e);
-    if (*e == '\0' && errno == 0) // no error
+    int32_t result = atoi(strtok(value + 1, ","));
+    int32_t id = atoi(strtok(NULL, ","));
+    log_d("token: %d | %s", result, id);
+
+    if (errno != 0)
     {
-        int32_t data_1 = motor1.position_pid.set_max_ctrl_value(result);
-        int32_t data_2 = motor2.position_pid.set_max_ctrl_value(result);
-        int32_t data_3 = motor3.position_pid.set_max_ctrl_value(result);
-        sprintf(MsgBuf, "%s:%d,%d,%d,", get_command_name(CMD_MAX_POS), data_1, data_2, data_3);
-        web_socket_send(MsgBuf, client_num, false);
+        log_e("[%u]: Bad command %s", client_num, command);
+        return;
     }
-    else
+
+    switch (id)
     {
-        log_e("[%u]: setting position values is not supported: %s", client_num, command);
+    case 0:
+    {
+        int32_t data = motor1.set_target_position(result);
+        sprintf(MsgBuf, "%s:%d, %d,", get_command_name(CMD_TARGET_POS), id, data);
+        break;
     }
+    case 1:
+    {
+        int32_t data = motor2.set_target_position(result);
+        sprintf(MsgBuf, "%s:%d, %d,", get_command_name(CMD_TARGET_POS), id, data);
+        break;
+    }
+    case 2:
+    {
+        int32_t data = motor3.set_target_position(result);
+        sprintf(MsgBuf, "%s:%d, %d,", get_command_name(CMD_TARGET_POS), id, data);
+        break;
+    }
+    case 3:
+    {
+        int32_t data_1 = motor1.set_target_position(result);
+        int32_t data_2 = motor2.set_target_position(result);
+        int32_t data_3 = motor3.set_target_position(result);
+        sprintf(MsgBuf, "%s:%d,%d,%d,%d,", get_command_name(CMD_TARGET_POS), id, data_1, data_2, data_3);
+        break;
+    }
+    default:
+        log_e("[%u]: Bad command %s", client_num, command);
+        return;
+    }
+    web_socket_send(MsgBuf, client_num, false);
 }
 
 void handle_max_vel(char *command, uint8_t client_num)
@@ -756,17 +798,17 @@ void pid_task(void *arg)
 
         if (mode_pos)
         {
-            motor1.position_pid.update(req_posy, motor1.get_position(), &ctrl_pos_1, integrati1n_threshold);
-            motor1.set_target_velocity(constrain(ctrl_pos_1, -motor1.get_max_velocity(), motor1.get_max_velocity())); // req_vel_1 = constrain(ctrl_pos_1, -max_vel, max_vel);
+            motor1.position_pid.update(req_posy, motor1.get_position(), &ctrl_pos_1, integration_threshold);
+            motor1.set_target_velocity(constrain(ctrl_pos_1, -motor1.velocity_pid.get_max_ctrl_value(), motor1.velocity_pid.get_max_ctrl_value())); // req_vel_1 = constrain(ctrl_pos_1, -max_vel, max_vel);
 
             motor2.position_pid.update(req_posy, motor2.get_position(), &ctrl_pos_2, integration_threshold);
-            motor2.set_target_velocity(constrain(ctrl_pos_2, -motor2.get_max_velocity(), motor2.get_max_velocity())); // req_vel_2 = constrain(ctrl_pos_2, -max_vel, max_vel);
+            motor2.set_target_velocity(constrain(ctrl_pos_2, -motor2.velocity_pid.get_max_ctrl_value(), motor2.velocity_pid.get_max_ctrl_value())); // req_vel_2 = constrain(ctrl_pos_2, -max_vel, max_vel);
 
             motor3.position_pid.update(req_posy, motor3.get_position(), &ctrl_pos_3, integration_threshold);
-            motor3.set_target_velocity(constrain(ctrl_pos_3, -motor3.get_max_velocity(), motor3.get_max_velocity())); // req_vel_3 = constrain(ctrl_pos_3, -max_vel, max_vel);
+            motor3.set_target_velocity(constrain(ctrl_pos_3, -motor3.velocity_pid.get_max_ctrl_value(), motor3.velocity_pid.get_max_ctrl_value())); // req_vel_3 = constrain(ctrl_pos_3, -max_vel, max_vel);
         }
 
-        motor1.velocity_pid.update(req_vel_1, motor1.get_velocity(), &ctrl_vel1, integration_threshold);
+        motor1.velocity_pid.update(motor1.get_target_velocity(), motor1.get_velocity(), &ctrl_vel1, integration_threshold);
         motor1.hbridge.set_pwm(ctrl_vel1);
         prev_pos_1 = motor1.get_position();
 
@@ -774,7 +816,7 @@ void pid_task(void *arg)
         motor2.hbridge.set_pwm(ctrl_vel2);
         prev_pos_2 = motor2.get_position();
 
-        motor3.velocity_pid.update(req_vel_3, motor3.get_velocity(), &ctrl_vel3, integration_threshold);
+        motor3.velocity_pid.update(motor3.get_target_velocity(), motor3.get_velocity(), &ctrl_vel3, integration_threshold);
         motor3.hbridge.set_pwm(ctrl_vel3);
         prev_pos_3 = motor3.get_position();
 
