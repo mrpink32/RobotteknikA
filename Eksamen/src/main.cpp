@@ -1,23 +1,23 @@
+#pragma once
 #include <ESP32Encoder.h>
 #include <WiFi.h>
 #include <SPIFFS.h>
 #include <ESPAsyncWebServer.h>
 #include <WebSocketsServer.h>
-#include <cstdint>
 #include <math.h>
 #include <string.h>
 #include <Arduino.h>
-#include <motor.h>
+#include <motor.h> // maybe switch to new version
+// #include <new-motor-test.h> // <-- needs encoder related stuff
 #include <global.h>
-#include <svglib.h>
 using namespace std;
 
 // Constants
-
 const char *SSID = "grim";
 const char *PASSWORD = "grimgrim";
 
-enum Commands {
+enum Commands
+{
     CMD_PID,
     CMD_TOGGLE,
     CMD_ERR_REQ,
@@ -35,9 +35,9 @@ typedef struct
 {
     const char *name;
     int32_t value;
-} cmd_t;
+} command_t;
 
-static cmd_t cmds[] = {
+static command_t commands[] = {
     {"pid_", CMD_PID},
     {"err", CMD_ERR_REQ},
     {"toggle", CMD_TOGGLE},
@@ -50,7 +50,6 @@ static cmd_t cmds[] = {
     {"target_pos", CMD_TARGET_POS},
     {"target_vel", CMD_TARGET_VEL},
 };
-
 
 const int32_t WIFI_CHANNEL = 9; // alle grupper skal have hver sin kanal
 const int32_t DNS_PORT = 53;
@@ -122,11 +121,19 @@ bool mode_pos = true;
  * Functions
  */
 
-int32_t get_cmd_value(char *command)
+/**
+ * This function searches for a matching command name in the 'commands' array.
+ * If a match is found, the corresponding command value is returned as an integer.
+ * If no match is found, -1 is returned.
+ *
+ * @param command: char pointer representing the command name to search for
+ * @return: integer value of the matching command, or -1 if no match is found
+ */
+int32_t get_command_value(char *command)
 {
-    for (int i = 0; i < sizeof(cmds) / sizeof(cmd_t); i++)
+    for (int i = 0; i < sizeof(commands) / sizeof(command_t); i++)
     {
-        cmd_t *cmd = &cmds[i];
+        command_t *cmd = &commands[i];
         if (strncmp(command, cmd->name, strlen(cmd->name)) == 0)
         {
             return cmd->value;
@@ -135,12 +142,19 @@ int32_t get_cmd_value(char *command)
     return -1;
 }
 
-const char *get_cmd_name(int32_t cmd_value)
+/**
+ * This function takes an integer command value 'command_value' and searches for a matching command name in the 'commands' array.
+ * If a match is found, the corresponding command name is returned as a const char pointer. If no match is found, NULL is returned.
+ *
+ * @param command_value: integer value of the command to search for
+ * @return: const char pointer representing the command name, or NULL if no match is found
+ */
+const char *get_command_name(int32_t command_value)
 {
-    for (int i = 0; i < sizeof(cmds) / sizeof(cmd_t); i++)
+    for (int i = 0; i < sizeof(commands) / sizeof(command_t); i++)
     {
-        cmd_t *cmd = &cmds[i];
-        if (cmd->value == cmd_value)
+        command_t *cmd = &commands[i];
+        if (cmd->value == command_value)
         {
             return cmd->name;
         }
@@ -183,7 +197,7 @@ void handle_led_state(char *command, uint8_t client_num)
 
     if (*(value + 1) == '?')
     {
-        sprintf(MsgBuf, "%s:%d", get_cmd_name(CMD_LED_STATE), LedState);
+        sprintf(MsgBuf, "%s:%d", get_command_name(CMD_LED_STATE), LedState);
         web_socket_send(MsgBuf, client_num, false);
     }
     else
@@ -195,7 +209,7 @@ void handle_led_state(char *command, uint8_t client_num)
         {
             LedState = result;
             log_d("[%u]: LedState received %d", client_num, LedState);
-            sprintf(MsgBuf, "%s:%d", get_cmd_name(CMD_LED_STATE), LedState);
+            sprintf(MsgBuf, "%s:%d", get_command_name(CMD_LED_STATE), LedState);
             web_socket_send(MsgBuf, client_num, true);
         }
         else
@@ -257,7 +271,7 @@ void handle_kx(char *command, uint8_t client_num)
         {
             *parm_value = result;
             log_d("[%u]: k%c value received %f", client_num, subtype, *parm_value);
-            sprintf(MsgBuf, "%sk%c:%f", get_cmd_name(CMD_PID), subtype, *parm_value);
+            sprintf(MsgBuf, "%sk%c:%f", get_command_name(CMD_PID), subtype, *parm_value);
             web_socket_send(MsgBuf, client_num, false);
         }
         else
@@ -266,7 +280,7 @@ void handle_kx(char *command, uint8_t client_num)
         }
     }
     web_socket_send(MsgBuf, client_num, false);
-    sprintf(MsgBuf, "%sk%c:%f", get_cmd_name(CMD_PID), subtype, *parm_value);
+    sprintf(MsgBuf, "%sk%c:%f", get_command_name(CMD_PID), subtype, *parm_value);
 }
 
 void handle_pos_req(char *command, uint8_t client_num)
@@ -286,7 +300,7 @@ void handle_pos_req(char *command, uint8_t client_num)
     int32_t data_1 = motor1.get_position();
     int32_t data_2 = motor2.get_position();
     int32_t data_3 = motor3.get_position();
-    sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_POS_REQ), data_1, data_2, data_3);
+    sprintf(MsgBuf, "%s:%d,%d,%d,", get_command_name(CMD_POS_REQ), data_1, data_2, data_3);
     web_socket_send(MsgBuf, client_num, false);
 }
 
@@ -307,7 +321,7 @@ void handle_vel_req(char *command, uint8_t client_num)
     int32_t data_1 = motor1.get_velocity();
     int32_t data_2 = motor2.get_velocity();
     int32_t data_3 = motor3.get_velocity();
-    sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_VEL_REQ), data_1, data_2, data_3);
+    sprintf(MsgBuf, "%s:%d,%d,%d,", get_command_name(CMD_VEL_REQ), data_1, data_2, data_3);
     web_socket_send(MsgBuf, client_num, false);
 }
 
@@ -332,7 +346,7 @@ void handle_err_req(char *command, uint8_t client_num)
     double data_4 = motor2.velocity_pid.get_error();
     double data_5 = motor3.position_pid.get_error();
     double data_6 = motor3.velocity_pid.get_error();
-    sprintf(MsgBuf, "%s:%f,%f,%f,%f,%f,%f,", get_cmd_name(CMD_ERR_REQ), data_1, data_2, data_3, data_4, data_5, data_6);
+    sprintf(MsgBuf, "%s:%f,%f,%f,%f,%f,%f,", get_command_name(CMD_ERR_REQ), data_1, data_2, data_3, data_4, data_5, data_6);
     web_socket_send(MsgBuf, client_num, false);
 }
 
@@ -345,13 +359,13 @@ void handle_max_pos(char *command, uint8_t client_num)
         log_e("[%u]: Bad command %s", client_num, command);
         return;
     }
-    
+
     if (*(value + 1) == '?')
     {
         int32_t data_1 = motor1.position_pid.get_max_ctrl_value();
         int32_t data_2 = motor2.position_pid.get_max_ctrl_value();
         int32_t data_3 = motor3.position_pid.get_max_ctrl_value();
-        sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_MAX_POS), data_1, data_2, data_3);
+        sprintf(MsgBuf, "%s:%d,%d,%d,", get_command_name(CMD_MAX_POS), data_1, data_2, data_3);
         web_socket_send(MsgBuf, client_num, false);
     }
 
@@ -364,7 +378,7 @@ void handle_max_pos(char *command, uint8_t client_num)
         int32_t data_1 = motor1.position_pid.set_max_ctrl_value(result);
         int32_t data_2 = motor2.position_pid.set_max_ctrl_value(result);
         int32_t data_3 = motor3.position_pid.set_max_ctrl_value(result);
-        sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_MAX_POS), data_1, data_2, data_3);
+        sprintf(MsgBuf, "%s:%d,%d,%d,", get_command_name(CMD_MAX_POS), data_1, data_2, data_3);
         web_socket_send(MsgBuf, client_num, false);
     }
     else
@@ -382,13 +396,13 @@ void handle_max_vel(char *command, uint8_t client_num)
         log_e("[%u]: Bad command %s", client_num, command);
         return;
     }
-    
+
     if (*(value + 1) == '?')
     {
         int32_t data_1 = motor1.velocity_pid.get_max_ctrl_value();
         int32_t data_2 = motor2.velocity_pid.get_max_ctrl_value();
         int32_t data_3 = motor3.velocity_pid.get_max_ctrl_value();
-        sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_MAX_VEL), data_1, data_2, data_3);
+        sprintf(MsgBuf, "%s:%d,%d,%d,", get_command_name(CMD_MAX_VEL), data_1, data_2, data_3);
         web_socket_send(MsgBuf, client_num, false);
     }
 
@@ -401,7 +415,7 @@ void handle_max_vel(char *command, uint8_t client_num)
         int32_t data_1 = motor1.velocity_pid.set_max_ctrl_value(result);
         int32_t data_2 = motor2.velocity_pid.set_max_ctrl_value(result);
         int32_t data_3 = motor3.velocity_pid.set_max_ctrl_value(result);
-        sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_MAX_VEL), data_1, data_2, data_3);
+        sprintf(MsgBuf, "%s:%d,%d,%d,", get_command_name(CMD_MAX_VEL), data_1, data_2, data_3);
         web_socket_send(MsgBuf, client_num, false);
     }
     else
@@ -419,14 +433,14 @@ void handle_target_pos(char *command, uint8_t client_num)
         log_e("[%u]: Bad command %s", client_num, command);
         return;
     }
-    
+
     if (*(value + 1) == '?')
     {
         // placeholder values used util motor debugging has been done
         int32_t data_1 = motor1.get_target_position();
         int32_t data_2 = motor2.get_target_position();
         int32_t data_3 = motor3.get_target_position();
-        sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_TARGET_POS), data_1, data_2, data_3);
+        sprintf(MsgBuf, "%s:%d,%d,%d,", get_command_name(CMD_TARGET_POS), data_1, data_2, data_3);
         web_socket_send(MsgBuf, client_num, false);
         return;
     }
@@ -447,19 +461,19 @@ void handle_target_pos(char *command, uint8_t client_num)
     case 0:
     {
         int32_t data = motor1.set_target_position(result);
-        sprintf(MsgBuf, "%s:%d, %d,", get_cmd_name(CMD_TARGET_POS), id, data);
+        sprintf(MsgBuf, "%s:%d, %d,", get_command_name(CMD_TARGET_POS), id, data);
     }
     break;
     case 1:
     {
         int32_t data = motor2.set_target_position(result);
-        sprintf(MsgBuf, "%s:%d, %d,", get_cmd_name(CMD_TARGET_POS), id, data);
+        sprintf(MsgBuf, "%s:%d, %d,", get_command_name(CMD_TARGET_POS), id, data);
     }
     break;
     case 2:
     {
         int32_t data = motor3.set_target_position(result);
-        sprintf(MsgBuf, "%s:%d, %d,", get_cmd_name(CMD_TARGET_POS), id, data);
+        sprintf(MsgBuf, "%s:%d, %d,", get_command_name(CMD_TARGET_POS), id, data);
     }
     break;
     case 3:
@@ -467,7 +481,7 @@ void handle_target_pos(char *command, uint8_t client_num)
         int32_t data_1 = motor1.set_target_position(result);
         int32_t data_2 = motor2.set_target_position(result);
         int32_t data_3 = motor3.set_target_position(result);
-        sprintf(MsgBuf, "%s:%d,%d,%d,%d,", get_cmd_name(CMD_TARGET_POS), id, data_1, data_2, data_3);
+        sprintf(MsgBuf, "%s:%d,%d,%d,%d,", get_command_name(CMD_TARGET_POS), id, data_1, data_2, data_3);
     }
     break;
     default:
@@ -486,14 +500,14 @@ void handle_target_vel(char *command, uint8_t client_num)
         log_e("[%u]: Bad command %s", client_num, command);
         return;
     }
-    
+
     if (*(value + 1) == '?')
     {
         // placeholder values used util motor debugging has been done
         int32_t data_1 = motor1.get_target_velocity();
         int32_t data_2 = motor2.get_target_velocity();
         int32_t data_3 = motor3.get_target_velocity();
-        sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_TARGET_VEL), data_1, data_2, data_3);
+        sprintf(MsgBuf, "%s:%d,%d,%d,", get_command_name(CMD_TARGET_VEL), data_1, data_2, data_3);
         web_socket_send(MsgBuf, client_num, false);
         return;
     }
@@ -514,19 +528,19 @@ void handle_target_vel(char *command, uint8_t client_num)
     case 0:
     {
         int32_t data = motor1.set_target_velocity(result);
-        sprintf(MsgBuf, "%s:%d, %d,", get_cmd_name(CMD_TARGET_VEL), id, data);
+        sprintf(MsgBuf, "%s:%d, %d,", get_command_name(CMD_TARGET_VEL), id, data);
     }
     break;
     case 1:
     {
         int32_t data = motor2.set_target_velocity(result);
-        sprintf(MsgBuf, "%s:%d,", get_cmd_name(CMD_TARGET_VEL), data);
+        sprintf(MsgBuf, "%s:%d,", get_command_name(CMD_TARGET_VEL), data);
     }
     break;
     case 2:
     {
         int32_t data = motor3.set_target_velocity(result);
-        sprintf(MsgBuf, "%s:%d,", get_cmd_name(CMD_TARGET_VEL), data);
+        sprintf(MsgBuf, "%s:%d,", get_command_name(CMD_TARGET_VEL), data);
     }
     break;
     case 3:
@@ -534,7 +548,7 @@ void handle_target_vel(char *command, uint8_t client_num)
         int32_t data_1 = motor1.set_target_velocity(result);
         int32_t data_2 = motor2.set_target_velocity(result);
         int32_t data_3 = motor3.set_target_velocity(result);
-        sprintf(MsgBuf, "%s:%d,%d,%d,", get_cmd_name(CMD_TARGET_VEL), data_1, data_2, data_3);
+        sprintf(MsgBuf, "%s:%d,%d,%d,", get_command_name(CMD_TARGET_VEL), data_1, data_2, data_3);
     }
     break;
     default:
@@ -544,13 +558,19 @@ void handle_target_vel(char *command, uint8_t client_num)
     web_socket_send(MsgBuf, client_num, false);
 }
 
+/**
+ * Handles a command received over a WebSocket connection.
+ * @param client_num: The client number associated with the connection.
+ * @param payload: The command payload received.
+ * @param length: The length of the payload.
+ */
 void handle_command(uint8_t client_num, uint8_t *payload, size_t length)
 {
     char *command = (char *)payload;
 
     log_d("[%u] Received text: %s", client_num, command);
 
-    switch (get_cmd_value(command))
+    switch (get_command_value(command))
     {
     case CMD_TOGGLE:
         handle_toggle(client_num);
@@ -588,6 +608,7 @@ void handle_command(uint8_t client_num, uint8_t *payload, size_t length)
         break;
     default:
         log_e("[%u] Message not recognized", client_num);
+        return;
     }
 
     WebSocket.connectedClients();
@@ -720,7 +741,7 @@ void pid_task(void *arg)
     motor3.set_position(encoder3.getCount());
     int64_t prev_pos_3 = motor3.get_position();
     for (;;)
-    { // loop tager mindre end 18us * 2
+    {                                  // loop tager mindre end 18us * 2
         motor1.set_target_velocity(0); // double_t req_vel_1 = 0;
         motor2.set_target_velocity(0); // double_t req_vel_2 = 0;
         motor3.set_target_velocity(0); // double_t req_vel_3 = 0;
@@ -741,8 +762,7 @@ void pid_task(void *arg)
             motor2.position_pid.update(req_posy, motor2.get_position(), &ctrl_pos_2, integration_threshold);
             motor2.set_target_velocity(constrain(ctrl_pos_2, -motor2.get_max_velocity(), motor2.get_max_velocity())) // req_vel_2 = constrain(ctrl_pos_2, -max_vel, max_vel);
 
-
-            motor3.position_pid.update(req_posy, motor3.get_position(), &ctrl_pos_3, integration_threshold);
+                motor3.position_pid.update(req_posy, motor3.get_position(), &ctrl_pos_3, integration_threshold);
             req_vel_3 = constrain(ctrl_pos_3, -max_vel, max_vel);
         }
 
@@ -787,11 +807,11 @@ void setup_tasks()
 {
     log_i("starting pid task");
     xTaskCreatePinnedToCore(
-        pid_task,        /* Function to implement the task */
-        "pid_task",      /* Name of the task */
-        5000,            /* Stack size in words */
-        NULL,            /* Task input parameter */
-        3,               /* Priority of the task from 0 to 25, higher number = higher priority */
+        pid_task,       /* Function to implement the task */
+        "pid_task",     /* Name of the task */
+        5000,           /* Stack size in words */
+        NULL,           /* Task input parameter */
+        3,              /* Priority of the task from 0 to 25, higher number = higher priority */
         &PidTaskHandle, /* Task handle. */
         1);
     // log_i("starting motion task");
