@@ -3,9 +3,8 @@ import numpy as np
 
 types = set(["<rect", "<circle", "<ellipse", "<line", "<polyline", "<polygon", "<squircle", "<polynomial"])
 CONVERSION_RATE = 1486/(2*math.pi)
-#CONVERSION_RATE = 180/(math.pi)
 PRECISION = 15
-POS_PER_CM = 50
+POS_PER_SEC = 10
 
 def find(lst,word):
     for i in range(len(lst)):
@@ -24,8 +23,7 @@ class SvgHandler:
         self.data = file.read().split()
 
     def interpret(self):
-        pos_lists = []
-        positions = []
+        polynomial_lists = []
         self.width = int(self.data[find(self.data,"width")].removeprefix('width="').removesuffix('"').removesuffix("mm"))
         self.height = int(self.data[find(self.data,"height")].removeprefix('height="').removesuffix('"').removesuffix("mm"))
         self.scale = 5/math.sqrt((self.width/2)**2 + (self.height/2)**2)
@@ -39,25 +37,20 @@ class SvgHandler:
             if self.data[i] in types and self.g == 1:
                 if self.data[i] == "<rect":
                     rect = Rect(self.scale, self.width, self.height, self.data, i)
-                    pos_lists.append(rect.shit())
+                    polynomial_lists.append(rect.shit())
                 if self.data[i] == "<ellipse":
                     ellipse = Ellipse(self.scale, self.width, self.height, self.data, i)
-                    pos_lists.append(ellipse.shit())
+                    polynomial_lists.append(ellipse.shit())
                 if self.data[i] == "<circle":
                     circle = Circle(self.scale, self.width, self.height, self.data, i)
-                    pos_lists.append(circle.shit())
+                    polynomial_lists.append(circle.shit())
                 if self.data[i] == "<line":
                     line = Line(self.scale, self.width, self.height, self.data, i)
-                    pos_lists.append(line.shit())
+                    polynomial_lists.append(line.shit())
                 if self.data[i] == "<polyline":
                     polyline = Polyline(self.scale, self.width, self.height, self.data, i)
-                    pos_lists.append(polyline.shit())
-        for i in pos_lists:
-            for j in i:
-                for k in j:
-                    positions.append(k)
-        print(positions)
-        return positions
+                    polynomial_lists.append(polyline.shit())
+        return polynomial_lists
 
 
 class Rect:
@@ -79,46 +72,47 @@ class Rect:
         self.height = scale*float(data[index+find(data[index:],"height=")].removeprefix('height="').removesuffix('"'))
 
     def shit(self) -> list[list[list[float]]]:
-        pos_list = []
+        polynomial_list = []
         t1 = self.height
         def vecx(t):
             return self.x
         def vecy(t):
             return t+self.y
-        pos_list.append(self.calc(t1,vecx,vecy))
+        polynomial_list.append(self.calc(t1,vecx,vecy))
         t1 = self.width
         def vecx(t):
             return self.x+t
         def vecy(t):
             return self.y+self.height
-        pos_list.append(self.calc(t1,vecx,vecy))
+        polynomial_list.append(self.calc(t1,vecx,vecy))
         t1 = self.height
         def vecx(t):
             return self.x+self.width
         def vecy(t):
             return self.y+self.height-t
-        pos_list.append(self.calc(t1,vecx,vecy))
+        polynomial_list.append(self.calc(t1,vecx,vecy))
         t1 = self.width
         def vecx(t):
             return self.x+self.width-t
         def vecy(t):
             return self.y
-        pos_list.append(self.calc(t1,vecx,vecy))
-        return pos_list
+        polynomial_list.append(self.calc(t1,vecx,vecy))
+        return polynomial_list
 
     def calc(self, t1 ,vecx, vecy):
         self.xt.clear()
         self.dicy = {1:[],2:[],3:[]}
-        t = 0
-        res = []
-        self.angle2(vecx(0),vecy(0),0)
-        while t < t1:
-            self.angle(vecx(t),vecy(t),0)
-            t += 1/POS_PER_CM
-        self.angle2(vecx(t1),vecy(t1),0)
-        for i in range(len(self.dicy[1])):
-            res.append([int(self.dicy[1][i]+0.5),int(self.dicy[2][i]+0.5),int(self.dicy[3][i]+0.5)])
-        return(res)
+        #dicy[1] = []
+        #dicy[2] = []
+        #dicy[3] = []
+        for i in range(1,self.precision+1):
+            self.xt.append((t1+t1*math.cos((2*i-1)*math.pi/(2*self.precision)))/2)
+        for i in self.xt:
+            self.angle(vecx(i),vecy(i),0)
+        p1 = list(np.polyfit(self.xt,self.dicy[1],self.precision-1))
+        p2 = list(np.polyfit(self.xt,self.dicy[2],self.precision-1))
+        p3 = list(np.polyfit(self.xt,self.dicy[3],self.precision-1))
+        return (p1, p2, p3)
     
     def angle(self,x,y,l):
         l += 1
@@ -126,13 +120,6 @@ class Rect:
         self.dicy[l].append(CONVERSION_RATE*math.atan2(6752.971963 - 771.0280374*x**2 + 1.168224299*x*a - 771.0280374*y**2, 6.168224299 * a + (146.0280374*x**2 + 146.0280374*y**2 - 1278.971963)*x))
         if l < 3:
             self.angle(-x/2-math.sqrt(3)*y/2,-y/2+math.sqrt(3)*x/2,l)
-
-    def angle2(self,x,y,l):
-        l += 1
-        a = - (625*x**3 - 625*x*y**2 + 107*math.sqrt(- 625*x**4 - 1250*x**2*y**2 - 625*y**4 + 34347*x**2 + 22898*y**2) - 11449*x)/(626*x**2 + 11449)
-        self.dicy[l].append(CONVERSION_RATE*math.atan2(- 0.05458992052*x**2 + 0.05458992052*x*a - 0.05458992052*y**2 + 1, 0.2336448598))
-        if l < 3:
-            self.angle2(-x/2-math.sqrt(3)*y/2,-y/2+math.sqrt(3)*x/2,l)
 
 
 class Ellipse:
@@ -164,16 +151,17 @@ class Ellipse:
     def calc(self, t1 ,vecx, vecy):
         self.xt.clear()
         self.dicy = {1:[],2:[],3:[]}
-        t = 0
-        res = []
-        self.angle2(vecx(0),vecy(0),0)
-        while t < t1:
-            self.angle(vecx(t),vecy(t),0)
-            t += 1/POS_PER_CM
-        self.angle2(vecx(t1),vecy(t1),0)
-        for i in range(len(self.dicy[1])):
-            res.append([int(self.dicy[1][i]+0.5),int(self.dicy[2][i]+0.5),int(self.dicy[3][i]+0.5)])
-        return(res)
+        #dicy[1] = []
+        #dicy[2] = []
+        #dicy[3] = []
+        for i in range(1,self.precision+1):
+            self.xt.append((t1+t1*math.cos((2*i-1)*math.pi/(2*self.precision)))/2)
+        for i in self.xt:
+            self.angle(vecx(i),vecy(i),0)
+        p1 = list(np.polyfit(self.xt,self.dicy[1],self.precision-1))
+        p2 = list(np.polyfit(self.xt,self.dicy[2],self.precision-1))
+        p3 = list(np.polyfit(self.xt,self.dicy[3],self.precision-1))
+        return (p1, p2, p3)
     
     def angle(self,x,y,l):
         l += 1
@@ -181,13 +169,6 @@ class Ellipse:
         self.dicy[l].append(CONVERSION_RATE*math.atan2(6752.971963 - 771.0280374*x**2 + 1.168224299*x*a - 771.0280374*y**2, 6.168224299 * a + (146.0280374*x**2 + 146.0280374*y**2 - 1278.971963)*x))
         if l < 3:
             self.angle(-x/2-math.sqrt(3)*y/2,-y/2+math.sqrt(3)*x/2,l)
-    
-    def angle2(self,x,y,l):
-        l += 1
-        a = - (625*x**3 - 625*x*y**2 + 107*math.sqrt(- 625*x**4 - 1250*x**2*y**2 - 625*y**4 + 34347*x**2 + 22898*y**2) - 11449*x)/(626*x**2 + 11449)
-        self.dicy[l].append(CONVERSION_RATE*math.atan2(- 0.05458992052*x**2 + 0.05458992052*x*a - 0.05458992052*y**2 + 1, 0.2336448598))
-        if l < 3:
-            self.angle2(-x/2-math.sqrt(3)*y/2,-y/2+math.sqrt(3)*x/2,l)
 
 
 class Circle:
@@ -216,16 +197,17 @@ class Circle:
     def calc(self, t1 ,vecx, vecy):
         self.xt.clear()
         self.dicy = {1:[],2:[],3:[]}
-        t = 0
-        res = []
-        self.angle2(vecx(0),vecy(0),0)
-        while t < t1:
-            self.angle(vecx(t),vecy(t),0)
-            t += 1/POS_PER_CM
-        self.angle2(vecx(t1),vecy(t1),0)
-        for i in range(len(self.dicy[1])):
-            res.append([int(self.dicy[1][i]+0.5),int(self.dicy[2][i]+0.5),int(self.dicy[3][i]+0.5)])
-        return(res)
+        #dicy[1] = []
+        #dicy[2] = []
+        #dicy[3] = []
+        for i in range(1,self.precision+1):
+            self.xt.append((t1+t1*math.cos((2*i-1)*math.pi/(2*self.precision)))/2)
+        for i in self.xt:
+            self.angle(vecx(i),vecy(i),0)
+        p1 = list(np.polyfit(self.xt,self.dicy[1],self.precision-1))
+        p2 = list(np.polyfit(self.xt,self.dicy[2],self.precision-1))
+        p3 = list(np.polyfit(self.xt,self.dicy[3],self.precision-1))
+        return (p1, p2, p3)
     
     def angle(self,x,y,l):
         l += 1
@@ -233,13 +215,6 @@ class Circle:
         self.dicy[l].append(CONVERSION_RATE*math.atan2(6752.971963 - 771.0280374*x**2 + 1.168224299*x*a - 771.0280374*y**2, 6.168224299 * a + (146.0280374*x**2 + 146.0280374*y**2 - 1278.971963)*x))
         if l < 3:
             self.angle(-x/2-math.sqrt(3)*y/2,-y/2+math.sqrt(3)*x/2,l)
-
-    def angle2(self,x,y,l):
-        l += 1
-        a = - (625*x**3 - 625*x*y**2 + 107*math.sqrt(- 625*x**4 - 1250*x**2*y**2 - 625*y**4 + 34347*x**2 + 22898*y**2) - 11449*x)/(626*x**2 + 11449)
-        self.dicy[l].append(CONVERSION_RATE*math.atan2(- 0.05458992052*x**2 + 0.05458992052*x*a - 0.05458992052*y**2 + 1, 0.2336448598))
-        if l < 3:
-            self.angle2(-x/2-math.sqrt(3)*y/2,-y/2+math.sqrt(3)*x/2,l)
 
 class Line:
     x1 = 0
@@ -270,16 +245,17 @@ class Line:
     def calc(self, t1 ,vecx, vecy):
         self.xt.clear()
         self.dicy = {1:[],2:[],3:[]}
-        t = 0
-        res = []
-        self.angle2(vecx(0),vecy(0),0)
-        while t < t1:
-            self.angle(vecx(t),vecy(t),0)
-            t += 1/POS_PER_CM
-        self.angle2(vecx(t1),vecy(t1),0)
-        for i in range(len(self.dicy[1])):
-            res.append([int(self.dicy[1][i]+0.5),int(self.dicy[2][i]+0.5),int(self.dicy[3][i]+0.5)])
-        return(res)
+        #dicy[1] = []
+        #dicy[2] = []
+        #dicy[3] = []
+        for i in range(1,self.precision+1):
+            self.xt.append((t1+t1*math.cos((2*i-1)*math.pi/(2*self.precision)))/2)
+        for i in self.xt:
+            self.angle(vecx(i),vecy(i),0)
+        p1 = list(np.polyfit(self.xt,self.dicy[1],self.precision-1))
+        p2 = list(np.polyfit(self.xt,self.dicy[2],self.precision-1))
+        p3 = list(np.polyfit(self.xt,self.dicy[3],self.precision-1))
+        return (p1, p2, p3)
     
     def angle(self,x,y,l):
         l += 1
@@ -287,13 +263,6 @@ class Line:
         self.dicy[l].append(CONVERSION_RATE*math.atan2(6752.971963 - 771.0280374*x**2 + 1.168224299*x*a - 771.0280374*y**2, 6.168224299 * a + (146.0280374*x**2 + 146.0280374*y**2 - 1278.971963)*x))
         if l < 3:
             self.angle(-x/2-math.sqrt(3)*y/2,-y/2+math.sqrt(3)*x/2,l)
-
-    def angle2(self,x,y,l):
-        l += 1
-        a = - (625*x**3 - 625*x*y**2 + 107*math.sqrt(- 625*x**4 - 1250*x**2*y**2 - 625*y**4 + 34347*x**2 + 22898*y**2) - 11449*x)/(626*x**2 + 11449)
-        self.dicy[l].append(CONVERSION_RATE*math.atan2(- 0.05458992052*x**2 + 0.05458992052*x*a - 0.05458992052*y**2 + 1, 0.2336448598))
-        if l < 3:
-            self.angle2(-x/2-math.sqrt(3)*y/2,-y/2+math.sqrt(3)*x/2,l)
 
 class Polyline:
     X = []
@@ -323,29 +292,30 @@ class Polyline:
 
 
     def shit(self) -> list[list[list[float]]]:
-        pos_list = []
+        polynomial_list = []
         for i in range(len(self.X)-1):
             t1 = math.sqrt((self.X[i+1]-self.X[i])^2+(self.Y[i+1]-self.Y[i])^2)
             def vecx(t):
                 return self.X[i] + t * (self.X[i+1] - self.X[i]) / t1
             def vecy(t):
                 return self.Y[i] + t * (self.Y[i+1] - self.Y[i]) / t1
-            pos_list.append(self.calc(t1,vecx,vecy))
-        return pos_list
+            polynomial_list.append(self.calc(t1,vecx,vecy))
+        return polynomial_list
 
     def calc(self, t1 ,vecx, vecy):
         self.xt.clear()
         self.dicy = {1:[],2:[],3:[]}
-        t = 0
-        res = []
-        self.angle2(vecx(0),vecy(0),0)
-        while t < t1:
-            self.angle(vecx(t),vecy(t),0)
-            t += 1/POS_PER_CM
-        self.angle2(vecx(t1),vecy(t1),0)
-        for i in range(len(self.dicy[1])):
-            res.append([int(self.dicy[1][i]+0.5),int(self.dicy[2][i]+0.5),int(self.dicy[3][i]+0.5)])
-        return(res)
+        #dicy[1] = []
+        #dicy[2] = []
+        #dicy[3] = []
+        for i in range(1,self.precision+1):
+            self.xt.append((t1+t1*math.cos((2*i-1)*math.pi/(2*self.precision)))/2)
+        for i in self.xt:
+            self.angle(vecx(i),vecy(i),0)
+        p1 = list(np.polyfit(self.xt,self.dicy[1],self.precision-1))
+        p2 = list(np.polyfit(self.xt,self.dicy[2],self.precision-1))
+        p3 = list(np.polyfit(self.xt,self.dicy[3],self.precision-1))
+        return (p1, p2, p3)
     
     def angle(self,x,y,l):
         l += 1
@@ -353,13 +323,6 @@ class Polyline:
         self.dicy[l].append(CONVERSION_RATE*math.atan2(6752.971963 - 771.0280374*x**2 + 1.168224299*x*a - 771.0280374*y**2, 6.168224299 * a + (146.0280374*x**2 + 146.0280374*y**2 - 1278.971963)*x))
         if l < 3:
             self.angle(-x/2-math.sqrt(3)*y/2,-y/2+math.sqrt(3)*x/2,l)
-    
-    def angle2(self,x,y,l):
-        l += 1
-        a = - (625*x**3 - 625*x*y**2 + 107*math.sqrt(- 625*x**4 - 1250*x**2*y**2 - 625*y**4 + 34347*x**2 + 22898*y**2) - 11449*x)/(626*x**2 + 11449)
-        self.dicy[l].append(CONVERSION_RATE*math.atan2(- 0.05458992052*x**2 + 0.05458992052*x*a - 0.05458992052*y**2 + 1, 0.2336448598))
-        if l < 3:
-            self.angle2(-x/2-math.sqrt(3)*y/2,-y/2+math.sqrt(3)*x/2,l)
 
 class Polygon:
     X = []
@@ -391,29 +354,30 @@ class Polygon:
 
 
     def shit(self) -> list[list[list[float]]]:
-        pos_list = []
+        polynomial_list = []
         for i in range(len(self.X)-1):
             t1 = math.sqrt((self.X[i+1]-self.X[i])^2+(self.Y[i+1]-self.Y[i])^2)
             def vecx(t):
                 return self.X[i] + t * (self.X[i+1] - self.X[i]) / t1
             def vecy(t):
                 return self.Y[i] + t * (self.Y[i+1] - self.Y[i]) / t1
-            pos_list.append(self.calc(t1,vecx,vecy))
-        return pos_list
+            polynomial_list.append(self.calc(t1,vecx,vecy))
+        return polynomial_list
 
     def calc(self, t1 ,vecx, vecy):
         self.xt.clear()
         self.dicy = {1:[],2:[],3:[]}
-        t = 0
-        res = []
-        self.angle2(vecx(0),vecy(0),0)
-        while t < t1:
-            self.angle(vecx(t),vecy(t),0)
-            t += 1/POS_PER_CM
-        self.angle2(vecx(t1),vecy(t1),0)
-        for i in range(len(self.dicy[1])):
-            res.append([int(self.dicy[1][i]+0.5),int(self.dicy[2][i]+0.5),int(self.dicy[3][i]+0.5)])
-        return(res)
+        #dicy[1] = []
+        #dicy[2] = []
+        #dicy[3] = []
+        for i in range(1,self.precision+1):
+            self.xt.append((t1+t1*math.cos((2*i-1)*math.pi/(2*self.precision)))/2)
+        for i in self.xt:
+            self.angle(vecx(i),vecy(i),0)
+        p1 = list(np.polyfit(self.xt,self.dicy[1],self.precision-1))
+        p2 = list(np.polyfit(self.xt,self.dicy[2],self.precision-1))
+        p3 = list(np.polyfit(self.xt,self.dicy[3],self.precision-1))
+        return (p1, p2, p3)
     
     def angle(self,x,y,l):
         l += 1
@@ -421,16 +385,9 @@ class Polygon:
         self.dicy[l].append(CONVERSION_RATE*math.atan2(6752.971963 - 771.0280374*x**2 + 1.168224299*x*a - 771.0280374*y**2, 6.168224299 * a + (146.0280374*x**2 + 146.0280374*y**2 - 1278.971963)*x))
         if l < 3:
             self.angle(-x/2-math.sqrt(3)*y/2,-y/2+math.sqrt(3)*x/2,l)
-    
-    def angle2(self,x,y,l):
-        l += 1
-        a = - (625*x**3 - 625*x*y**2 + 107*math.sqrt(- 625*x**4 - 1250*x**2*y**2 - 625*y**4 + 34347*x**2 + 22898*y**2) - 11449*x)/(626*x**2 + 11449)
-        self.dicy[l].append(CONVERSION_RATE*math.atan2(- 0.05458992052*x**2 + 0.05458992052*x*a - 0.05458992052*y**2 + 1, 0.2336448598))
-        if l < 3:
-            self.angle2(-x/2-math.sqrt(3)*y/2,-y/2+math.sqrt(3)*x/2,l)
 
 def main():
-    svg = SvgHandler("C:/Users/theth/Desktop/GITHUB/RobotteknikA/Eksamen/data/test1.svg")
+    svg = SvgHandler("C:/Users/theth/Desktop/GITHUB/RobotteknikA/Eksamen/data/test2.svg")
     svg.interpret()
 
 
