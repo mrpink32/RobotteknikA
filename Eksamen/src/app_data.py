@@ -44,9 +44,9 @@ class websocket_data:
     def toggle(self):
         self.ws.send("toggle")
 
-    # def set_slider(self, value):
-    #     svg = SvgHandler(value)
-    #     self.ws.send(f"sli:{svg.interpret()}")
+    def set_slider(self, value):
+        svg = SvgHandler(value)
+        self.ws.send(f"sli:{svg.interpret()}")
 
     def set_kx(self, x, value):
         self.ws.send(f"pid_{x}:{value}")
