@@ -78,6 +78,7 @@ var inp_vel = [];           // Array of Inputs to change and display motor veloc
 var inp_target_pos = [];    // Array of Inputs to change and display motor pid target values
 var inp_target_vel = [];    // Array of Inputs to change and display motor pid target values
 var inp_err = [];           // Array of Inputs to display motor pid errors
+var inp_prev_err = [];
 var inp_max_pos = [];       // Array of Inputs to change and display max motor values
 var inp_max_vel = [];       // Array of Inputs to change and display max motor values
 
@@ -138,6 +139,9 @@ function init() {
     for (let i = 0; i < 6; i++) {
         inp_err[i] = document.getElementById(`inp_err_${i}`);
         inp_err[i].value = "0";
+
+        inp_prev_err[i] = document.getElementById(`inp_prev_err_${i}`);
+        inp_prev_err[i].value = "0";
     }
     
 
@@ -245,11 +249,12 @@ function request_all_data() {
     doSend("pid_kd:?");
     doSend(Cmd_CurrentPos + ":?");
     doSend(Cmd_CurrentVel + ":?");
+    doSend(Cmd_Err + ":?");
+    doSend(Cmd_PrevErr + ":?");
     doSend(Cmd_MaxPos + ":?");
     doSend(Cmd_MaxVel + ":?");
     doSend(Cmd_TargetPos + ":?");
     doSend(Cmd_TargetVel + ":?");
-    doSend(Cmd_Err + ":?");
 }
 
 
@@ -378,13 +383,25 @@ function onMessage(event) {
         }
         case Cmd_Err:
         {
-            let values = placeholder_name(event, last_split);
+            let values = placeholder_name(event, last_split)
             console.log(`${command} data:`);
             let length = values.length;
             console.log(`values array has size: ${length} and contains: ${values}`);
             for (let i = 0; i < length; i++) {
                 console.log(`${command} values received: ${values[i]}`);
                 inp_err[i].value = values[i];
+            }
+            break;
+        }
+        case Cmd_PrevErr:
+        {
+            let values = placeholder_name(event, last_split);
+            console.log(`${command} data:`);
+            let length = values.length;
+            console.log(`values array has size: ${length} and contains: ${values}`);
+            for (let i = 0; i < length; i++) {
+                console.log(`${command} values received: ${values[i]}`);
+                inp_prev_err[i].value = values[i];
             }
             break;
         }
@@ -419,7 +436,7 @@ function onMessage(event) {
             let length = values.length;
             console.log(`values array has size: ${length} and contains: ${values}`);
             for (let i = 0; i < length; i++) {
-                console.log(`max_pos values received: ${values[i]}`);
+                console.log(`target_pos values received: ${values[i]}`);
                 inp_target_pos[i].value = values[i];
             }
             break;
@@ -431,7 +448,7 @@ function onMessage(event) {
             let length = values.length;
             console.log(`values array has size: ${length} and contains: ${values}`);
             for (let i = 0; i < length; i++) {
-                console.log(`max_pos values received: ${values[i]}`);
+                console.log(`target_vel values received: ${values[i]}`);
                 inp_target_vel[i].value = values[i];
             }
             break;

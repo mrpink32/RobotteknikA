@@ -234,40 +234,6 @@ void handle_led_state(char *command, uint8_t client_num)
     web_socket_send(MsgBuf, client_num, true);
 }
 
-// void handle_slider(char *command, uint8_t client_num)
-// {
-// 	char *value = strstr(command, ":");
-
-// 	if (value == NULL || *value != ':')
-// 	{
-// 		log_e("[%u]: Bad command %s", client_num, command);
-// 		return;
-// 	}
-
-// 	if (*(value + 1) == '?')
-// 	{
-// 		sprintf(MsgBuf, "%s:%d", get_command_name(CMD_SLI), SliderVal);
-// 		web_socket_send(MsgBuf, client_num, false);
-// 	}
-// 	else
-// 	{
-// 		errno = 0;
-// 		char *e;
-// 		int32_t result = strtol(value + 1, &e, 10);
-// 		if (*e == '\0' && 0 == errno) // no error
-// 		{
-// 			SliderVal = result;
-// 			log_d("[%u]: Slidervalue received %d", client_num, SliderVal);
-// 		}
-// 		else
-// 		{
-// 			log_e("[%u]: illegal Slidervalue received: %s", client_num, value + 1);
-// 		}
-// 		sprintf(MsgBuf, "%s:%d", get_command_name(CMD_SLI), SliderVal);
-// 		web_socket_send(MsgBuf, client_num, true);
-// 	}
-// }
-
 void handle_kx(char *command, uint8_t client_num)
 {
     double_t KpVal = 10.0;
@@ -400,6 +366,32 @@ void handle_err_req(char *command, uint8_t client_num)
     double data_5 = motor3.position_pid.get_error();
     double data_6 = motor3.velocity_pid.get_error();
     sprintf(MsgBuf, "%s:%f,%f,%f,%f,%f,%f,", get_command_name(CMD_ERR_REQ), data_1, data_2, data_3, data_4, data_5, data_6);
+    web_socket_send(MsgBuf, client_num, false);
+}
+
+void handle_prev_err(char *command, uint8_t client_num)
+{
+    char *value = strstr(command, ":");
+
+    if (value == NULL || *value != ':')
+    {
+        log_e("[%u]: Bad command %s", client_num, command);
+        return;
+    }
+    else if (*(value + 1) != '?')
+    {
+        log_e("[%u]: Bad command %s", client_num, command);
+        log_e("[%u]: settin error values is not supported: %s", client_num, command);
+        return;
+    }
+
+    double data_1 = motor1.position_pid.get_error();
+    double data_2 = motor1.velocity_pid.get_error();
+    double data_3 = motor2.position_pid.get_error();
+    double data_4 = motor2.velocity_pid.get_error();
+    double data_5 = motor3.position_pid.get_error();
+    double data_6 = motor3.velocity_pid.get_error();
+    sprintf(MsgBuf, "%s:%f,%f,%f,%f,%f,%f,", get_command_name(CMD_PREV_ERR), data_1, data_2, data_3, data_4, data_5, data_6);
     web_socket_send(MsgBuf, client_num, false);
 }
 
@@ -761,8 +753,8 @@ void handle_command(uint8_t client_num, uint8_t *payload, size_t length)
         handle_target_vel(command, client_num);
         break;
     case CMD_PREV_ERR:
-        log_d("Implement handler for request: %s", command);
-        // handle_prev_vel(command, client_num);
+        // log_d("Implement handler for request: %s", command);
+        handle_prev_err(command, client_num);
         break;
     default:
         log_e("[%u] Message not recognized: %s", client_num, command);
@@ -905,7 +897,7 @@ void pid_task(void *arg)
         motor1.set_target_velocity(0); // double_t req_vel_1 = 0;
         motor2.set_target_velocity(0); // double_t req_vel_2 = 0;
         motor3.set_target_velocity(0); // double_t req_vel_3 = 0;
-        digitalWrite(PIN_PID_LOOP_2, HIGH);
+        digitalWrite(PIN_PID_LOOP, HIGH);
 
         motor1.set_position(encoder1.getCount());
         motor1.set_velocity((motor1.get_position() - prev_pos_1) / DT_S);
@@ -916,13 +908,13 @@ void pid_task(void *arg)
 
         if (mode_pos)
         {
-            motor1.position_pid.update(req_posy, motor1.get_position(), &ctrl_pos_1, integration_threshold);
+            motor1.position_pid.update(motor1.get_target_position(), motor1.get_position(), &ctrl_pos_1, integration_threshold);
             motor1.set_target_velocity(constrain(ctrl_pos_1, -motor1.velocity_pid.get_max_ctrl_value(), motor1.velocity_pid.get_max_ctrl_value())); // req_vel_1 = constrain(ctrl_pos_1, -max_vel, max_vel);
 
-            motor2.position_pid.update(req_posy, motor2.get_position(), &ctrl_pos_2, integration_threshold);
+            motor2.position_pid.update(motor2.get_target_position(), motor2.get_position(), &ctrl_pos_2, integration_threshold);
             motor2.set_target_velocity(constrain(ctrl_pos_2, -motor2.velocity_pid.get_max_ctrl_value(), motor2.velocity_pid.get_max_ctrl_value())); // req_vel_2 = constrain(ctrl_pos_2, -max_vel, max_vel);
 
-            motor3.position_pid.update(req_posy, motor3.get_position(), &ctrl_pos_3, integration_threshold);
+            motor3.position_pid.update(motor3.get_target_position(), motor3.get_position(), &ctrl_pos_3, integration_threshold);
             motor3.set_target_velocity(constrain(ctrl_pos_3, -motor3.velocity_pid.get_max_ctrl_value(), motor3.velocity_pid.get_max_ctrl_value())); // req_vel_3 = constrain(ctrl_pos_3, -max_vel, max_vel);
         }
 
@@ -938,7 +930,7 @@ void pid_task(void *arg)
         motor3.hbridge.set_pwm(ctrl_vel3);
         prev_pos_3 = motor3.get_position();
 
-        digitalWrite(PIN_PID_LOOP_2, LOW);
+        digitalWrite(PIN_PID_LOOP, LOW);
         vTaskDelayUntil(&xLastWakeTime, xTimeIncrement);
     }
 }
@@ -994,10 +986,12 @@ void setup()
     // Start Serial port
     Serial.begin(115200);
 
-    // pinMode(PIN_PID_LOOP_1, OUTPUT);
-    pinMode(PIN_PID_LOOP_2, OUTPUT);
-    // pinMode(PIN_PID_LOOP_3, OUTPUT);
-    // pinMode(PIN_LIMIT_SW, INPUT);
+    pinMode(PIN_PID_LOOP, OUTPUT);
+    
+    pinMode(12, OUTPUT);
+    digitalWrite(12, HIGH);
+    pinMode(13, OUTPUT);
+    digitalWrite(13, HIGH);
 
     ESP32Encoder::useInternalWeakPullResistors = UP;   // Enable the weak pull up resistors
     encoder1.attachFullQuad(PIN_ENC_A_1, PIN_ENC_B_1); // Attache pins for use as encoder pins
@@ -1037,13 +1031,21 @@ void loop()
 {
     // Look for and handle WebSocket data
     WebSocket.loop();
-    // Serial.printf(
-    //     "curr_pos_1: %.2f  curr_pos_2: %.2f  \nctrl_pos_1: %.2f  ctrl_pos_2: %.2f  \ncurrent_velocity_1: %.2f current_velocity_2: %.2f ctrl_vel_1: %.2f ctrl_vel_2: %.2f\n\r",
-    //     (double_t)motor1.get_position(), (double_t)motor2.get_position(), ctrl_pos_1, ctrl_pos_2, motor1.get_velocity(), motor2.get_velocity(), ctrl_vel1, ctrl_vel2);
-    // Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", motor1.position_pid.get_kp(), motor1.position_pid.get_ki(), motor1.position_pid.get_kd(), motor1.position_pid.get_error());
-    // Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", motor1.velocity_pid.get_kp(), motor1.velocity_pid.get_ki(), motor1.velocity_pid.get_kd(), motor1.velocity_pid.get_error());
-    // Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", motor2.position_pid.get_kp(), motor2.position_pid.get_ki(), motor2.position_pid.get_kd(), motor2.position_pid.get_error());
-    // Serial.printf("kp: %f, ki: %f, kd: %f, error: %f\n", motor2.velocity_pid.get_kp(), motor2.velocity_pid.get_ki(), motor2.velocity_pid.get_kd(), motor2.velocity_pid.get_error());
+    sprintf(MsgBuf, "%s:%d,%d,%d,", get_command_name(CMD_POS_REQ), motor1.get_position(), motor2.get_position(), motor3.get_position());
+    log_d("Broadcasting: %s", MsgBuf);
+    WebSocket.broadcastTXT(MsgBuf, strlen(MsgBuf));
+    sprintf(MsgBuf, "%s:%d,%d,%d,", get_command_name(CMD_VEL_REQ), motor1.get_velocity(), motor2.get_velocity(), motor3.get_velocity());
+    log_d("Broadcasting: %s", MsgBuf);
+    WebSocket.broadcastTXT(MsgBuf, strlen(MsgBuf));
+    double data_1 = motor1.position_pid.get_error();
+    double data_2 = motor1.velocity_pid.get_error();
+    double data_3 = motor2.position_pid.get_error();
+    double data_4 = motor2.velocity_pid.get_error();
+    double data_5 = motor3.position_pid.get_error();
+    double data_6 = motor3.velocity_pid.get_error();
+    sprintf(MsgBuf, "%s:%f,%f,%f,%f,%f,%f,", get_command_name(CMD_ERR_REQ), data_1, data_2, data_3, data_4, data_5, data_6);
+    log_d("Broadcasting: %s", MsgBuf);
+    WebSocket.broadcastTXT(MsgBuf, strlen(MsgBuf));
 
     vTaskDelay(0.2 * configTICK_RATE_HZ);
 }

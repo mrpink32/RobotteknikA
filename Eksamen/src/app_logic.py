@@ -15,8 +15,8 @@ class app_logic(app_data.websocket_data):
             self.onoff_cb(0)
         elif cmd=='led_state':
             self.led_state_cb(value)  
-        # elif cmd=='sli':
-        #     self.sli_cb(value)        
+        elif cmd=='sli':
+            self.sli_cb(value)        
         elif cmd=='pid_kp':
             self.kx_cb(value, 'kp')    
         elif cmd=='pid_ki':
@@ -38,9 +38,6 @@ class app_logic(app_data.websocket_data):
     # def sli_change(self, value):
     #     self.set_slider(value)
 
-    # def register_sli_cb(self, cb_func):
-    #     self.sli_cb = cb_func
-    
-    def register_kx_cb(self, cb_func):
-        self.kx_cb = cb_func
+    def register_sli_cb(self, cb_func):
+        self.sli_cb = cb_func
     
