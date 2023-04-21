@@ -17,6 +17,7 @@ const char *PASSWORD = "grimgrim";
 
 enum Commands
 {
+    // CMD_SLI,
     CMD_PID,
     CMD_TOGGLE,
     CMD_ERR_REQ,
@@ -37,9 +38,10 @@ typedef struct
 } command_t;
 
 static command_t commands[] = {
+    // {"sli", CMD_SLI},
     {"pid_", CMD_PID},
-    {"err", CMD_ERR_REQ},
     {"toggle", CMD_TOGGLE},
+    {"err", CMD_ERR_REQ},
     {"prev_err", CMD_PREV_ERR},
     {"led_state", CMD_LED_STATE},
     {"current_pos", CMD_POS_REQ},
@@ -61,8 +63,9 @@ AsyncWebServer Server(HTTP_PORT);
 WebSocketsServer WebSocket = WebSocketsServer(WS_PORT);
 TaskHandle_t MotionTaskHandle;
 
-char MsgBuf[64];
+char MsgBuf[128];
 int32_t LedState = 0;
+int32_t SliderVal = 0;
 
 TaskHandle_t PidTaskHandle;
 // TaskHandle_t PidTaskHandle2;
@@ -212,32 +215,69 @@ void handle_led_state(char *command, uint8_t client_num)
         sprintf(MsgBuf, "%s:%d", get_command_name(CMD_LED_STATE), LedState);
         web_socket_send(MsgBuf, client_num, false);
     }
+
+    errno = 0;
+    char *e;
+    int32_t result = strtol(value + 1, &e, 10);
+    if (*e == '\0' && 0 == errno) // no error
+    {
+        LedState = result;
+        log_d("[%u]: LedState received %d", client_num, LedState);
+        // sprintf(MsgBuf, "%s:%d", get_command_name(CMD_LED_STATE), LedState);
+        // web_socket_send(MsgBuf, client_num, true);
+    }
     else
     {
-        errno = 0;
-        char *e;
-        int32_t result = strtol(value + 1, &e, 10);
-        if (*e == '\0' && 0 == errno) // no error
-        {
-            LedState = result;
-            log_d("[%u]: LedState received %d", client_num, LedState);
-            sprintf(MsgBuf, "%s:%d", get_command_name(CMD_LED_STATE), LedState);
-            web_socket_send(MsgBuf, client_num, true);
-        }
-        else
-        {
-            log_e("[%u]: illegal LedState received: %s", client_num, value + 1);
-        }
+        log_e("[%u]: illegal LedState received: %s", client_num, value + 1);
     }
+    sprintf(MsgBuf, "%s:%d", get_command_name(CMD_LED_STATE), LedState);
+    web_socket_send(MsgBuf, client_num, true);
 }
+
+// void handle_slider(char *command, uint8_t client_num)
+// {
+// 	char *value = strstr(command, ":");
+
+// 	if (value == NULL || *value != ':')
+// 	{
+// 		log_e("[%u]: Bad command %s", client_num, command);
+// 		return;
+// 	}
+
+// 	if (*(value + 1) == '?')
+// 	{
+// 		sprintf(MsgBuf, "%s:%d", get_command_name(CMD_SLI), SliderVal);
+// 		web_socket_send(MsgBuf, client_num, false);
+// 	}
+// 	else
+// 	{
+// 		errno = 0;
+// 		char *e;
+// 		int32_t result = strtol(value + 1, &e, 10);
+// 		if (*e == '\0' && 0 == errno) // no error
+// 		{
+// 			SliderVal = result;
+// 			log_d("[%u]: Slidervalue received %d", client_num, SliderVal);
+// 		}
+// 		else
+// 		{
+// 			log_e("[%u]: illegal Slidervalue received: %s", client_num, value + 1);
+// 		}
+// 		sprintf(MsgBuf, "%s:%d", get_command_name(CMD_SLI), SliderVal);
+// 		web_socket_send(MsgBuf, client_num, true);
+// 	}
+// }
 
 void handle_kx(char *command, uint8_t client_num)
 {
+    double_t KpVal = 10.0;
+    double_t KiVal = 5.0;
+    double_t KdVal = 0.0;
+
     char *value = strstr(command, ":");
 
     if (value == NULL || *value != ':')
     {
-        Serial.printf("[%u]: Bad command %s\n", client_num, command);
         log_e("[%u]: Bad command %s", client_num, command);
         return;
     }
@@ -245,25 +285,23 @@ void handle_kx(char *command, uint8_t client_num)
     char subtype = *(value - 1);
 
     double *parm_value;
-    errno = 0;
-    char *e;
-    double result = strtol(value + 1, &e, 10);
+
     switch (subtype)
     {
     case 'p':
-        parm_value = &result;
+        parm_value = &KpVal;
         motor1.position_pid.set_kp(*parm_value);
         motor2.position_pid.set_kp(*parm_value);
         motor3.position_pid.set_kp(*parm_value);
         break;
     case 'i':
-        parm_value = &result;
+        parm_value = &KiVal;
         motor1.position_pid.set_ki(*parm_value);
         motor2.position_pid.set_ki(*parm_value);
         motor3.position_pid.set_ki(*parm_value);
         break;
     case 'd':
-        parm_value = &result;
+        parm_value = &KdVal;
         motor1.position_pid.set_kd(*parm_value);
         motor2.position_pid.set_kd(*parm_value);
         motor3.position_pid.set_kd(*parm_value);
@@ -275,23 +313,25 @@ void handle_kx(char *command, uint8_t client_num)
 
     if (*(value + 1) == '?')
     {
-        errno = 0;
-        char *e;
-        double result = strtod(value + 1, &e);
-        if (*e == '\0' && 0 == errno) // no error
-        {
-            *parm_value = result;
-            log_d("[%u]: k%c value received %f", client_num, subtype, *parm_value);
-            sprintf(MsgBuf, "%sk%c:%f", get_command_name(CMD_PID), subtype, *parm_value);
-            web_socket_send(MsgBuf, client_num, true);
-        }
-        else
-        {
-            log_e("[%u]: illegal format of k%c value received: %s", client_num, subtype, value + 1);
-        }
+        sprintf(MsgBuf, "%sk%c:%f", get_command_name(CMD_PID), subtype, *parm_value);
+        web_socket_send(MsgBuf, client_num, false);
+        return;
     }
-    sprintf(MsgBuf, "%sk%c:%f", get_command_name(CMD_PID), subtype, *parm_value);
-    web_socket_send(MsgBuf, client_num, true);
+
+    errno = 0;
+    char *e;
+    double result = strtod(value + 1, &e);
+    if (*e == '\0' && 0 == errno) // no error
+    {
+        *parm_value = result;
+        log_d("[%u]: k%c value received %f", client_num, subtype, *parm_value);
+        sprintf(MsgBuf, "%sk%c:%f", get_command_name(CMD_PID), subtype, *parm_value);
+        web_socket_send(MsgBuf, client_num, true);
+    }
+    else
+    {
+        log_e("[%u]: illegal format of k%c value received: %s", client_num, subtype, value + 1);
+    }
 }
 
 void handle_pos_req(char *command, uint8_t client_num)
@@ -305,7 +345,8 @@ void handle_pos_req(char *command, uint8_t client_num)
     }
     else if (*(value + 1) != '?')
     {
-        log_e("[%u]: setting position values is not supported: %s", client_num, command);
+        log_e("[%u]: Bad command %s", client_num, command);
+        // log_e("[%u]: setting position values is not supported: %s", client_num, command);
         return;
     }
     int32_t data_1 = motor1.get_position();
@@ -326,7 +367,8 @@ void handle_vel_req(char *command, uint8_t client_num)
     }
     else if (*(value + 1) != '?')
     {
-        log_e("[%u]: setting velocity values is not supported: %s", client_num, command);
+        log_e("[%u]: Bad command %s", client_num, command);
+        // log_e("[%u]: setting velocity values is not supported: %s", client_num, command);
         return;
     }
     int32_t data_1 = motor1.get_velocity();
@@ -342,13 +384,13 @@ void handle_err_req(char *command, uint8_t client_num)
 
     if (value == NULL || *value != ':')
     {
-        Serial.printf("[%u]: Bad command %s\n", client_num, command);
         log_e("[%u]: Bad command %s", client_num, command);
         return;
     }
     else if (*(value + 1) != '?')
     {
-        log_e("[%u]: setting velocity values is not supported: %s", client_num, command);
+        log_e("[%u]: Bad command %s", client_num, command);
+        log_e("[%u]: settin error values is not supported: %s", client_num, command);
         return;
     }
     double data_1 = motor1.position_pid.get_error();
@@ -370,8 +412,7 @@ void handle_max_pos(char *command, uint8_t client_num)
         log_e("[%u]: Bad command %s", client_num, command);
         return;
     }
-
-    if (*(value + 1) == '?')
+    else if (*(value + 1) == '?')
     {
         int32_t data_1 = motor1.position_pid.get_max_ctrl_value();
         int32_t data_2 = motor2.position_pid.get_max_ctrl_value();
@@ -381,14 +422,22 @@ void handle_max_pos(char *command, uint8_t client_num)
         return;
     }
 
-    errno = 0;
-    int32_t result = atoi(strtok(value + 1, ","));
-    int32_t id = atoi(strtok(NULL, ","));
-    log_d("token: %d | %s", result, id);
+    // DO NOT CHANGE THIS CODE
+    char *test = strtok(command, ":");
+    // DO NOT CHANGE THIS CODE
 
-    if (errno != 0)
+    errno = 0;
+    char *e;
+    int32_t id = strtol(strtok(NULL, ";"), &e, 10);
+    if (*e != '\0' || errno != 0) // error
     {
         log_e("[%u]: Bad command %s", client_num, command);
+        return;
+    }
+    int32_t result = strtol(strtok(NULL, ","), &e, 10);
+    if (*e != '\0' || errno != 0) // error
+    {
+        log_e("[%u]: Bad value %d", client_num, value);
         return;
     }
 
@@ -396,35 +445,41 @@ void handle_max_pos(char *command, uint8_t client_num)
     {
     case 0:
     {
-        int32_t data = motor1.set_target_position(result);
-        sprintf(MsgBuf, "%s:%d, %d,", get_command_name(CMD_TARGET_POS), id, data);
+        // int32_t data = motor1.set_max_position(result);
+        motor1.position_pid.set_max_ctrl_value(result);
+        sprintf(MsgBuf, "%s:%d;%d,", get_command_name(CMD_MAX_POS), id, result);
         break;
     }
     case 1:
     {
-        int32_t data = motor2.set_target_position(result);
-        sprintf(MsgBuf, "%s:%d, %d,", get_command_name(CMD_TARGET_POS), id, data);
+        // int32_t data = motor2.set_max_position(result);
+        motor2.position_pid.set_max_ctrl_value(result);
+        sprintf(MsgBuf, "%s:%d;%d,", get_command_name(CMD_MAX_POS), id, result);
         break;
     }
     case 2:
     {
-        int32_t data = motor3.set_target_position(result);
-        sprintf(MsgBuf, "%s:%d, %d,", get_command_name(CMD_TARGET_POS), id, data);
+        // int32_t data = motor3.set_max_position(result);
+        motor3.position_pid.set_max_ctrl_value(result);
+        sprintf(MsgBuf, "%s:%d;%d,", get_command_name(CMD_MAX_POS), id, result);
         break;
     }
     case 3:
     {
-        int32_t data_1 = motor1.set_target_position(result);
-        int32_t data_2 = motor2.set_target_position(result);
-        int32_t data_3 = motor3.set_target_position(result);
-        sprintf(MsgBuf, "%s:%d,%d,%d,%d,", get_command_name(CMD_TARGET_POS), id, data_1, data_2, data_3);
+        // int32_t data = motor1.set_max_position(result);
+        int32_t data_1 = motor1.position_pid.set_max_ctrl_value(result);
+        // int32_t data = motor1.set_max_position(result);
+        int32_t data_2 = motor2.position_pid.set_max_ctrl_value(result);
+        // int32_t data = motor1.set_max_position(result);
+        int32_t data_3 = motor3.position_pid.set_max_ctrl_value(result);
+        sprintf(MsgBuf, "%s:%d;%d,%d,%d,", get_command_name(CMD_MAX_POS), id, data_1, data_2, data_3);
         break;
     }
     default:
-        log_e("[%u]: Bad command %s", client_num, command);
+        log_e("[%u]: Bad id value %s", client_num, id);
         return;
     }
-    web_socket_send(MsgBuf, client_num, false);
+    web_socket_send(MsgBuf, client_num, true);
 }
 
 void handle_max_vel(char *command, uint8_t client_num)
@@ -436,63 +491,113 @@ void handle_max_vel(char *command, uint8_t client_num)
         log_e("[%u]: Bad command %s", client_num, command);
         return;
     }
-
-    if (*(value + 1) == '?')
+    else if (*(value + 1) == '?')
     {
         int32_t data_1 = motor1.velocity_pid.get_max_ctrl_value();
         int32_t data_2 = motor2.velocity_pid.get_max_ctrl_value();
         int32_t data_3 = motor3.velocity_pid.get_max_ctrl_value();
         sprintf(MsgBuf, "%s:%d,%d,%d,", get_command_name(CMD_MAX_VEL), data_1, data_2, data_3);
         web_socket_send(MsgBuf, client_num, false);
+        return;
     }
+
+    // DO NOT CHANGE THIS CODE
+    char *test = strtok(command, ":");
+    // DO NOT CHANGE THIS CODE
 
     errno = 0;
     char *e;
-    char *data_1 = strtok(value + 1, ",");
-    double result = strtod(value + 1, &e);
-    if (*e == '\0' && errno == 0) // no error
+    int32_t id = strtol(strtok(NULL, ";"), &e, 10);
+    if (*e != '\0' || errno != 0) // error
     {
+        log_e("[%u]: Bad command %s", client_num, command);
+        return;
+    }
+    int32_t result = strtol(strtok(NULL, ","), &e, 10);
+    if (*e != '\0' || errno != 0) // error
+    {
+        log_e("[%u]: Bad value %d", client_num, value);
+        return;
+    }
+
+    switch (id)
+    {
+    case 0:
+    {
+        // int32_t data = motor1.set_max_velocity(result);
+        motor1.velocity_pid.set_max_ctrl_value(result);
+        sprintf(MsgBuf, "%s:%d;%d,", get_command_name(CMD_MAX_VEL), id, result);
+        break;
+    }
+    case 1:
+    {
+        // int32_t data = motor2.set_max_velocity(result);
+        motor2.velocity_pid.set_max_ctrl_value(result);
+        sprintf(MsgBuf, "%s:%d;%d,", get_command_name(CMD_MAX_VEL), id, result);
+        break;
+    }
+    case 2:
+    {
+        // int32_t data = motor3.set_max_velocity(result);
+        motor3.velocity_pid.set_max_ctrl_value(result);
+        sprintf(MsgBuf, "%s:%d;%d,", get_command_name(CMD_MAX_VEL), id, result);
+        break;
+    }
+    case 3:
+    {
+        // int32_t data = motor1.set_max_velocity(result);
         int32_t data_1 = motor1.velocity_pid.set_max_ctrl_value(result);
+        // int32_t data = motor1.set_max_velocity(result);
         int32_t data_2 = motor2.velocity_pid.set_max_ctrl_value(result);
+        // int32_t data = motor1.set_max_velocity(result);
         int32_t data_3 = motor3.velocity_pid.set_max_ctrl_value(result);
-        sprintf(MsgBuf, "%s:%d,%d,%d,", get_command_name(CMD_MAX_VEL), data_1, data_2, data_3);
-        web_socket_send(MsgBuf, client_num, false);
+        sprintf(MsgBuf, "%s:%d;%d,%d,%d,", get_command_name(CMD_MAX_VEL), id, data_1, data_2, data_3);
+        break;
     }
-    else
-    {
-        log_e("[%u]: setting velocity values is not supported: %s", client_num, command);
+    defeult:
+        log_e("[%u]: Bad id value %s", client_num, id);
+        return;
     }
+    web_socket_send(MsgBuf, client_num, true);
 }
 
 void handle_target_pos(char *command, uint8_t client_num)
 {
     char *value = strstr(command, ":");
 
+    log_d("[%u] command: %s", client_num, command);
+
     if (value == NULL || *value != ':')
     {
         log_e("[%u]: Bad command %s", client_num, command);
         return;
     }
-
-    if (*(value + 1) == '?')
+    else if (*(value + 1) == '?')
     {
-        // placeholder values used util motor debugging has been done
         int32_t data_1 = motor1.get_target_position();
         int32_t data_2 = motor2.get_target_position();
         int32_t data_3 = motor3.get_target_position();
         sprintf(MsgBuf, "%s:%d,%d,%d,", get_command_name(CMD_TARGET_POS), data_1, data_2, data_3);
-        web_socket_send(MsgBuf, client_num, false);
+        web_socket_send(MsgBuf, client_num, true);
         return;
     }
 
-    errno = 0;
-    int32_t result = atoi(strtok(value + 1, ","));
-    int32_t id = atoi(strtok(NULL, ","));
-    log_d("token: %d | %s", result, id);
+    // DO NOT CHANGE THIS CODE
+    char *test = strtok(command, ":");
+    // DO NOT CHANGE THIS CODE
 
-    if (errno != 0)
+    errno = 0;
+    char *e;
+    int32_t id = strtol(strtok(NULL, ";"), &e, 10);
+    if (*e != '\0' || errno != 0) // error
     {
         log_e("[%u]: Bad command %s", client_num, command);
+        return;
+    }
+    int32_t result = strtol(strtok(NULL, ","), &e, 10);
+    if (*e != '\0' || errno != 0) // error
+    {
+        log_e("[%u]: Bad value %d", client_num, value);
         return;
     }
 
@@ -501,19 +606,19 @@ void handle_target_pos(char *command, uint8_t client_num)
     case 0:
     {
         int32_t data = motor1.set_target_position(result);
-        sprintf(MsgBuf, "%s:%d, %d,", get_command_name(CMD_TARGET_POS), id, data);
+        sprintf(MsgBuf, "%s:%d;%d,", get_command_name(CMD_TARGET_POS), id, data);
     }
     break;
     case 1:
     {
         int32_t data = motor2.set_target_position(result);
-        sprintf(MsgBuf, "%s:%d, %d,", get_command_name(CMD_TARGET_POS), id, data);
+        sprintf(MsgBuf, "%s:%d;%d,", get_command_name(CMD_TARGET_POS), id, data);
     }
     break;
     case 2:
     {
         int32_t data = motor3.set_target_position(result);
-        sprintf(MsgBuf, "%s:%d, %d,", get_command_name(CMD_TARGET_POS), id, data);
+        sprintf(MsgBuf, "%s:%d;%d,", get_command_name(CMD_TARGET_POS), id, data);
     }
     break;
     case 3:
@@ -521,7 +626,7 @@ void handle_target_pos(char *command, uint8_t client_num)
         int32_t data_1 = motor1.set_target_position(result);
         int32_t data_2 = motor2.set_target_position(result);
         int32_t data_3 = motor3.set_target_position(result);
-        sprintf(MsgBuf, "%s:%d,%d,%d,%d,", get_command_name(CMD_TARGET_POS), id, data_1, data_2, data_3);
+        sprintf(MsgBuf, "%s:%d;%d,%d,%d,", get_command_name(CMD_TARGET_POS), id, data_1, data_2, data_3);
     }
     break;
     default:
@@ -540,10 +645,8 @@ void handle_target_vel(char *command, uint8_t client_num)
         log_e("[%u]: Bad command %s", client_num, command);
         return;
     }
-
-    if (*(value + 1) == '?')
+    else if (*(value + 1) == '?')
     {
-        // placeholder values used util motor debugging has been done
         int32_t data_1 = motor1.get_target_velocity();
         int32_t data_2 = motor2.get_target_velocity();
         int32_t data_3 = motor3.get_target_velocity();
@@ -552,14 +655,22 @@ void handle_target_vel(char *command, uint8_t client_num)
         return;
     }
 
-    errno = 0;
-    int32_t result = atoi(strtok(value + 1, ","));
-    int32_t id = atoi(strtok(NULL, ","));
-    log_d("token: %d | %s", result, id);
+    // DO NOT CHANGE THIS CODE
+    char *test = strtok(command, ":");
+    // DO NOT CHANGE THIS CODE
 
-    if (errno != 0)
+    errno = 0;
+    char *e;
+    int32_t id = strtol(strtok(NULL, ";"), &e, 10);
+    if (*e != '\0' || errno != 0) // error
     {
         log_e("[%u]: Bad command %s", client_num, command);
+        return;
+    }
+    int32_t result = strtol(strtok(NULL, ","), &e, 10);
+    if (*e != '\0' || errno != 0) // error
+    {
+        log_e("[%u]: Bad value %d", client_num, value);
         return;
     }
 
@@ -568,19 +679,19 @@ void handle_target_vel(char *command, uint8_t client_num)
     case 0:
     {
         int32_t data = motor1.set_target_velocity(result);
-        sprintf(MsgBuf, "%s:%d, %d,", get_command_name(CMD_TARGET_VEL), id, data);
+        sprintf(MsgBuf, "%s:%d;%d,", get_command_name(CMD_TARGET_VEL), id, data);
     }
     break;
     case 1:
     {
         int32_t data = motor2.set_target_velocity(result);
-        sprintf(MsgBuf, "%s:%d,", get_command_name(CMD_TARGET_VEL), data);
+        sprintf(MsgBuf, "%s:%d;%d,", get_command_name(CMD_TARGET_VEL), id, data);
     }
     break;
     case 2:
     {
         int32_t data = motor3.set_target_velocity(result);
-        sprintf(MsgBuf, "%s:%d,", get_command_name(CMD_TARGET_VEL), data);
+        sprintf(MsgBuf, "%s:%d;%d,", get_command_name(CMD_TARGET_VEL), id, data);
     }
     break;
     case 3:
@@ -588,7 +699,7 @@ void handle_target_vel(char *command, uint8_t client_num)
         int32_t data_1 = motor1.set_target_velocity(result);
         int32_t data_2 = motor2.set_target_velocity(result);
         int32_t data_3 = motor3.set_target_velocity(result);
-        sprintf(MsgBuf, "%s:%d,%d,%d,", get_command_name(CMD_TARGET_VEL), data_1, data_2, data_3);
+        sprintf(MsgBuf, "%s:%d;%d,%d,%d,", get_command_name(CMD_TARGET_VEL), id, data_1, data_2, data_3);
     }
     break;
     default:
@@ -618,6 +729,9 @@ void handle_command(uint8_t client_num, uint8_t *payload, size_t length)
     case CMD_LED_STATE:
         handle_led_state(command, client_num);
         break;
+    // case CMD_SLI:
+    // 	handle_slider(command, client_num);
+    // 	break;
     case CMD_PID:
         handle_kx(command, client_num);
         break;
@@ -631,8 +745,8 @@ void handle_command(uint8_t client_num, uint8_t *payload, size_t length)
         handle_err_req(command, client_num);
         break;
     case CMD_MAX_POS:
-        handle_max_pos(command, client_num);
         // log_d("Implement handler for request: %s", command);
+        handle_max_pos(command, client_num);
         break;
     case CMD_MAX_VEL:
         // log_d("Implement handler for request: %s", command);
@@ -646,8 +760,12 @@ void handle_command(uint8_t client_num, uint8_t *payload, size_t length)
         // log_d("Implement handler for request: %s", command);
         handle_target_vel(command, client_num);
         break;
+    case CMD_PREV_ERR:
+        log_d("Implement handler for request: %s", command);
+        // handle_prev_vel(command, client_num);
+        break;
     default:
-        log_e("[%u] Message not recognized", client_num);
+        log_e("[%u] Message not recognized: %s", client_num, command);
         return;
     }
 
@@ -680,12 +798,14 @@ void onWebSocketEvent(uint8_t client_num,
 
     // Handle text messages from client
     case WStype_TEXT:
+        // log_d("[%u] Text: %s", client_num, payload);
         handle_command(client_num, payload, length);
         break;
 
+    case WStype_ERROR:
+        log_e("[%u] Error: %s", client_num, payload);
     // For everything else: do nothing
     case WStype_BIN:
-    case WStype_ERROR:
     case WStype_FRAGMENT_TEXT_START:
     case WStype_FRAGMENT_BIN_START:
     case WStype_FRAGMENT:

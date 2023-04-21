@@ -49,28 +49,27 @@ class UI(Frame):
         btn_onoff.grid(row=2, column=0, sticky=W, padx=16)
         cvs_stat.grid(row=2, column=1, sticky=W)
 
-    def render_slider(self):
-        ntr_path = Entry(self, width=20, bd=2, relief="ridge")
-        btn_path = Button(
-        #self.logic.set_path(x, ntr_path.get())
-            self, text='Set path', width=12, command=lambda x='path': self.logic.set_path(x, ntr_path.get()), bd=2, relief="ridge")
-        # sli_slider = Scale(self, from_=0, to=100, orient=HORIZONTAL, showvalue=0, highlightthickness=0, 
-        #     troughcolor='light gray', cursor='arrow', bg='white', width=24)
-        # sli_slider.bind("<ButtonRelease-1>",
-        #                 lambda evt: self.logic.sli_change(sli_slider.get()))
-
-        # lbl_slider_val = Label(self, bg='white')
-
-        def cb(value):
-            ntr_path.set(value)
-            # lbl_slider_val.configure(text=value)
-
-        self.logic.register_sli_cb(cb)
-        # grid
-        # Label(self, text='Intensity:', bg='White').grid(
-            # row=3, column=0, sticky=W+S, padx=16)
-        btn_path.grid(row=3, column=0, sticky=W, padx=16)
-        ntr_path.grid(row=3, column=1, sticky=W, pady=8)
+    # def render_slider(self):
+    #     ntr_path = Entry(self, width=20, bd=2, relief="ridge")
+    #     btn_path = Button(
+    #     #self.logic.set_path(x, ntr_path.get())
+    #         self, text='Set path', width=12, command=lambda x='path': self.logic.set_path(x, ntr_path.get()), bd=2, relief="ridge")
+    #     # sli_slider = Scale(self, from_=0, to=100, orient=HORIZONTAL, showvalue=0, highlightthickness=0, 
+    #     #     troughcolor='light gray', cursor='arrow', bg='white', width=24)
+    #     # sli_slider.bind("<ButtonRelease-1>",
+    #     #                 lambda evt: self.logic.sli_change(sli_slider.get()))
+    #     # lbl_slider_val = Label(self, bg='white')
+    #     def cb(value):
+    #         print(value)
+    #         # ntr_path.delete(0, END)
+    #         # ntr_path.insert(0, value)
+    #         # lbl_slider_val.configure(text=value)
+    #     self.logic.register_sli_cb(cb)
+    #     # grid
+    #     # Label(self, text='Intensity:', bg='White').grid(
+    #         # row=3, column=0, sticky=W+S, padx=16)
+    #     btn_path.grid(row=3, column=0, sticky=W, padx=16)
+    #     ntr_path.grid(row=3, column=1, sticky=W, pady=8)
 
     def render_kx(self):
         # kx buttons
@@ -125,13 +124,13 @@ class UI(Frame):
         # render gui
         self.render_header()
         self.render_onoff()
-        self.render_slider()
+        # self.render_slider()
         self.render_kx()
         self.render_footer()
 
         def fu():
             self.logic.request_led_state()
-            self.logic.request_slider()
+            # self.logic.request_slider()
             self.logic.request_kx('kp')
             self.logic.request_kx('ki')
             self.logic.request_kx('kd')

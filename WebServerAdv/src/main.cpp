@@ -166,7 +166,7 @@ void handle_kx(char *command, uint8_t client_num)
     parm_value = &KpVal;
     break;
   case 'i':
-    parm_value = &KiVal;mikk282k
+    parm_value = &KiVal;
     break;
   case 'd':
     parm_value = &KdVal;

@@ -145,6 +145,7 @@ function init() {
         inp_target_pos[i] = document.getElementById(`inp_target_pos_${i}`);
         inp_target_pos[i].value = "0";
         inp_target_pos[i].onchange = function (event) { console.log(event); onsubmit_inp_set_target_pos(i); }
+        
         inp_target_vel[i] = document.getElementById(`inp_target_vel_${i}`);
         inp_target_vel[i].value = "0";
         inp_target_vel[i].onchange = function (event) { console.log(event); onsubmit_inp_set_target_vel(i); }
@@ -152,6 +153,7 @@ function init() {
         inp_max_pos[i] = document.getElementById(`inp_max_pos_${i}`);
         inp_max_pos[i].value = "0";
         inp_max_pos[i].onchange = function (event) { console.log(event); onsubmit_inp_set_max_pos(i); }
+        
         inp_max_vel[i] = document.getElementById(`inp_max_vel_${i}`);
         inp_max_vel[i].value = "0";
         inp_max_vel[i].onchange = function (event) { console.log(event); onsubmit_inp_set_max_vel(i); }
@@ -190,7 +192,7 @@ function onclick_btn_set_kx(parm) {
 function onsubmit_inp_set_target_pos(index) {
     console.log(`onsubmit: target from ${index}`);
     var value = inp_target_pos[index].value;
-    var cmd = `${Cmd_TargetPos}:${value},${index},`;
+    var cmd = `${Cmd_TargetPos}:${index};${value},`;
     doSend(cmd);
 }
 
@@ -198,7 +200,7 @@ function onsubmit_inp_set_target_pos(index) {
 function onsubmit_inp_set_target_vel(index) {
     console.log(`onsubmit: target from ${index}`);
     var value = inp_target_vel[index].value;
-    var cmd = `${Cmd_TargetVel}:${value},${index},`;
+    var cmd = `${Cmd_TargetVel}:${index};${value},`;
     doSend(cmd);
 }
 
@@ -206,7 +208,7 @@ function onsubmit_inp_set_target_vel(index) {
 function onsubmit_inp_set_max_pos(index) {
     console.log(`onsubmit: max value from ${index}`);
     var value = inp_max_pos[index].value;
-    var cmd = `${Cmd_MaxPos}:${value},${index}`;
+    var cmd = `${Cmd_MaxPos}:${index};${value},`;
     doSend(cmd);
 }
 
@@ -214,8 +216,25 @@ function onsubmit_inp_set_max_pos(index) {
 function onsubmit_inp_set_max_vel(index) {
     console.log(`onsubmit: max value from ${index}`);
     var value = inp_max_vel[index].value;
-    var cmd = `${Cmd_MaxVel}:${value};${index}`;
+    var cmd = `${Cmd_MaxVel}:${index};${value},`;
     doSend(cmd);
+}
+
+
+function placeholder_name(event, last_split) {
+    let values = [];
+    let split = 0;
+    while (true) {
+        split = event.data.indexOf(',', last_split + 1);
+        // console.log("split: ", split)
+        if (split == -1) {
+            break;
+        }
+        values.push(event.data.slice(last_split + 1, split));
+        last_split = event.data.indexOf(',', split);
+        // console.log("last_split: ", last_split);
+    }
+    return values;
 }
 
 
@@ -258,9 +277,6 @@ function onOpen(event) {
 
     // Enable controls
     btn_onoff.disabled = false;
-    btn_set_kp.disabled = false;
-    btn_set_ki.disabled = false;
-    btn_set_kd.disabled = false;
 
     // Get the current state of gui
     request_all_data();
@@ -277,9 +293,6 @@ function onClose(event) {
 
     // Disable controls
     btn_onoff.disabled = true;
-    btn_set_kp.disabled = true;
-    btn_set_ki.disabled = true;
-    btn_set_kd.disabled = true;
 
     // Try to reconnect after a few seconds
     setTimeout(function () { url = get_url(); wsConnect(url) }, 2000);
@@ -287,36 +300,29 @@ function onClose(event) {
 
 // Called when a message is received from the server
 function onMessage(event) {
+    let command, value, last_split;
 
     // Print out our received message
     console.log("Received: " + event.data);
 
-    let idx = event.data.search(':')
+    let command_marker = event.data.search(':')
 
-    let command, value;
-    var values = [];
+    if (command_marker == -1) { // no : in data
+        // command = event.data;
+        // value = "";
+        console.log("no : in data");
+        return;
+    }
 
-    if (idx == -1) { // no : in data
-        command = event.data;
-        value = "";
+    command = event.data.slice(0, command_marker);
+    
+    let id_marker = event.data.search(';');
+    if (id_marker == -1) {
+        value = event.data.slice(command_marker + 1);
+        last_split = command_marker;
     } else {
-        command = event.data.slice(0, idx);
-        value = event.data.slice(idx + 1);
-
-        if (command == Cmd_CurrentPos || command == Cmd_CurrentVel || command == Cmd_Err || command == Cmd_MaxPos || command == Cmd_MaxVel) {
-            let last_split = idx;
-            let split = 0;
-            while (true) {
-                split = event.data.indexOf(',', last_split + 1);
-                // console.log("split: ", split)
-                if (split == -1) {
-                    break;
-                }
-                values.push(event.data.slice(last_split + 1, split));
-                last_split = event.data.indexOf(',', split);
-                // console.log("last_split: ", last_split);
-            }
-        }
+        value = event.data.slice(id_marker + 1); 
+        last_split = id_marker;
     }
 
     // Update circle graphic with LED state
@@ -348,6 +354,7 @@ function onMessage(event) {
             break;
         case Cmd_CurrentPos:
         {
+            let values = placeholder_name(event, last_split);
             console.log("Positions data:");
             let length = values.length;
             console.log(`values array has size: ${length} and contains: ${values}`);
@@ -359,6 +366,7 @@ function onMessage(event) {
         }
         case Cmd_CurrentVel:
         {
+            let values = placeholder_name(event, last_split);
             console.log("Velocity data:");
             let length = values.length;
             console.log(`values array has size: ${length} and contains: ${values}`);
@@ -370,6 +378,7 @@ function onMessage(event) {
         }
         case Cmd_Err:
         {
+            let values = placeholder_name(event, last_split);
             console.log(`${command} data:`);
             let length = values.length;
             console.log(`values array has size: ${length} and contains: ${values}`);
@@ -379,7 +388,9 @@ function onMessage(event) {
             }
             break;
         }
-        case Cmd_MaxPos: {
+        case Cmd_MaxPos:
+        {
+            let values = placeholder_name(event, last_split);
             console.log("Max pos data:");
             let length = values.length;
             console.log(`values array has size: ${length} and contains: ${values}`);
@@ -389,7 +400,9 @@ function onMessage(event) {
             }
             break;
         }
-        case Cmd_MaxVel: {
+        case Cmd_MaxVel:
+        {
+            let values = placeholder_name(event, last_split);
             console.log("Max vel data:");
             let length = values.length;
             console.log(`values array has size: ${length} and contains: ${values}`);
@@ -399,8 +412,29 @@ function onMessage(event) {
             }
             break;
         }
-        case Cmd_TargetPos: {
-
+        case Cmd_TargetPos:
+        { 
+            let values = placeholder_name(event, last_split);
+            console.log("Target pos data:");
+            let length = values.length;
+            console.log(`values array has size: ${length} and contains: ${values}`);
+            for (let i = 0; i < length; i++) {
+                console.log(`max_pos values received: ${values[i]}`);
+                inp_target_pos[i].value = values[i];
+            }
+            break;
+        }
+        case Cmd_TargetVel:
+        {
+            let values = placeholder_name(event, last_split);
+            console.log("Target vel data:");
+            let length = values.length;
+            console.log(`values array has size: ${length} and contains: ${values}`);
+            for (let i = 0; i < length; i++) {
+                console.log(`max_pos values received: ${values[i]}`);
+                inp_target_vel[i].value = values[i];
+            }
+            break;
         }
         default:
             break;

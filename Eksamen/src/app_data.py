@@ -15,8 +15,8 @@ class websocket_data:
         else:
             self.cb(msg, None)
 
-    def onError(self, msg):
-        print(f"Websocket error: {msg}")
+    def onError(self, msg, test):
+        print(f"Websocket error: {msg}") # {test}")
 
     def onOpen(self):
         print(f"Websocket open")
@@ -44,9 +44,9 @@ class websocket_data:
     def toggle(self):
         self.ws.send("toggle")
 
-    def set_slider(self, value):
-        svg = SvgHandler(value)
-        self.ws.send(f"sli:{svg.interpret()}")
+    # def set_slider(self, value):
+    #     svg = SvgHandler(value)
+    #     self.ws.send(f"sli:{svg.interpret()}")
 
     def set_kx(self, x, value):
         self.ws.send(f"pid_{x}:{value}")
@@ -54,8 +54,8 @@ class websocket_data:
     def request_led_state(self):
         self.ws.send(f"led_state:?") 
 
-    def request_slider(self):
-        self.ws.send(f"sli:?") 
+    # def request_slider(self):
+    #     self.ws.send(f"sli:?") 
     
     def request_kx(self, x):
         self.ws.send(f"pid_{x}:?")
