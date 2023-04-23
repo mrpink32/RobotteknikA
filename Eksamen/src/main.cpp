@@ -17,16 +17,15 @@ const char *PASSWORD = "grimgrim";
 
 enum Commands
 {
-    // CMD_SLI,
     CMD_PID,
     CMD_TOGGLE,
     CMD_ERR_REQ,
     CMD_POS_REQ,
     CMD_VEL_REQ,
-    CMD_LED_STATE,
     CMD_MAX_POS,
     CMD_MAX_VEL,
     CMD_PREV_ERR,
+    CMD_LED_STATE,
     CMD_TARGET_POS,
     CMD_TARGET_VEL,
 };
@@ -38,16 +37,15 @@ typedef struct
 } command_t;
 
 static command_t commands[] = {
-    // {"sli", CMD_SLI},
     {"pid_", CMD_PID},
-    {"toggle", CMD_TOGGLE},
     {"err", CMD_ERR_REQ},
+    {"toggle", CMD_TOGGLE},
+    {"max_pos", CMD_MAX_POS},
+    {"max_vel", CMD_MAX_VEL},
     {"prev_err", CMD_PREV_ERR},
     {"led_state", CMD_LED_STATE},
     {"current_pos", CMD_POS_REQ},
     {"current_vel", CMD_VEL_REQ},
-    {"max_pos", CMD_MAX_POS},
-    {"max_vel", CMD_MAX_VEL},
     {"target_pos", CMD_TARGET_POS},
     {"target_vel", CMD_TARGET_VEL},
 };
@@ -84,13 +82,21 @@ ESP32Encoder encoder3;
 // H_Bridge hBridge2;
 // H_Bridge hBridge3;
 
+Motor motors[3] = {
+    Motor(PIN_HBRIDGE_PWM_1, PIN_HBRIDGE_INA_1, PIN_HBRIDGE_INB_1,
+          PWM_FREQ_HZ, PWM_RES_BITS, PWM_CH_1, MAX_CTRL_VALUE, DT_S),
+    Motor(PIN_HBRIDGE_PWM_2, PIN_HBRIDGE_INA_2, PIN_HBRIDGE_INB_2,
+          PWM_FREQ_HZ, PWM_RES_BITS, PWM_CH_2, MAX_CTRL_VALUE, DT_S),
+    Motor(PIN_HBRIDGE_PWM_3, PIN_HBRIDGE_INA_3, PIN_HBRIDGE_INB_3,
+          PWM_FREQ_HZ, PWM_RES_BITS, PWM_CH_3, MAX_CTRL_VALUE, DT_S),
+};
+
 Motor motor1(PIN_HBRIDGE_PWM_1, PIN_HBRIDGE_INA_1, PIN_HBRIDGE_INB_1,
              PWM_FREQ_HZ, PWM_RES_BITS, PWM_CH_1, MAX_CTRL_VALUE, DT_S);
 Motor motor2(PIN_HBRIDGE_PWM_2, PIN_HBRIDGE_INA_2, PIN_HBRIDGE_INB_2,
              PWM_FREQ_HZ, PWM_RES_BITS, PWM_CH_2, MAX_CTRL_VALUE, DT_S);
 Motor motor3(PIN_HBRIDGE_PWM_3, PIN_HBRIDGE_INA_3, PIN_HBRIDGE_INB_3,
              PWM_FREQ_HZ, PWM_RES_BITS, PWM_CH_3, MAX_CTRL_VALUE, DT_S);
-Motor motors[3] = {motor1, motor2, motor3};
 
 const double integration_threshold = 200;
 
@@ -98,13 +104,6 @@ volatile double req_posx;
 volatile double req_posy;
 volatile double dest_posx;
 volatile double dest_posy;
-// volatile int32_t current_pos_1;
-// volatile int32_t current_pos_2;
-// volatile int32_t current_pos_3;
-// volatile double_t current_vel_1;
-// volatile double_t current_vel_2;
-// volatile double_t current_vel_3;
-// volatile double max_vel = 300;
 volatile double device_x = 0;
 volatile double device_y = 0;
 const double b = 24.5;
@@ -236,9 +235,6 @@ void handle_led_state(char *command, uint8_t client_num)
 
 void handle_kx(char *command, uint8_t client_num)
 {
-    double_t KpVal = 10.0;
-    double_t KiVal = 5.0;
-    double_t KdVal = 0.0;
 
     char *value = strstr(command, ":");
 
@@ -250,27 +246,32 @@ void handle_kx(char *command, uint8_t client_num)
 
     char subtype = *(value - 1);
 
-    double *parm_value;
-
+    double data[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     switch (subtype)
     {
     case 'p':
-        parm_value = &KpVal;
-        motor1.position_pid.set_kp(*parm_value);
-        motor2.position_pid.set_kp(*parm_value);
-        motor3.position_pid.set_kp(*parm_value);
+        data[0] = motor1.position_pid.get_kp();
+        data[1] = motor1.velocity_pid.get_kp();
+        data[2] = motor2.position_pid.get_kp();
+        data[3] = motor2.velocity_pid.get_kp();
+        data[4] = motor3.position_pid.get_kp();
+        data[5] = motor3.velocity_pid.get_kp();
         break;
     case 'i':
-        parm_value = &KiVal;
-        motor1.position_pid.set_ki(*parm_value);
-        motor2.position_pid.set_ki(*parm_value);
-        motor3.position_pid.set_ki(*parm_value);
+        data[0] = motor1.position_pid.get_ki();
+        data[1] = motor1.velocity_pid.get_ki();
+        data[2] = motor2.position_pid.get_ki();
+        data[3] = motor2.velocity_pid.get_ki();
+        data[4] = motor3.position_pid.get_ki();
+        data[5] = motor3.velocity_pid.get_ki();
         break;
     case 'd':
-        parm_value = &KdVal;
-        motor1.position_pid.set_kd(*parm_value);
-        motor2.position_pid.set_kd(*parm_value);
-        motor3.position_pid.set_kd(*parm_value);
+        data[0] = motor1.position_pid.get_kd();
+        data[1] = motor1.velocity_pid.get_kd();
+        data[2] = motor2.position_pid.get_kd();
+        data[3] = motor2.velocity_pid.get_kd();
+        data[4] = motor3.position_pid.get_kd();
+        data[5] = motor3.velocity_pid.get_kd();
         break;
     default:
         log_e("[%u]: Bad command %s", client_num, command);
@@ -279,25 +280,95 @@ void handle_kx(char *command, uint8_t client_num)
 
     if (*(value + 1) == '?')
     {
-        sprintf(MsgBuf, "%sk%c:%f", get_command_name(CMD_PID), subtype, *parm_value);
+        sprintf(MsgBuf, "%sk%c:%f,%f,%f,%f,%f,%f,", get_command_name(CMD_PID), subtype, data[0], data[1], data[2], data[3], data[4], data[5]);
         web_socket_send(MsgBuf, client_num, false);
         return;
     }
 
+    // DO NOT CHANGE THIS CODE
+    char *test = strtok(command, ":");
+    // DO NOT CHANGE THIS CODE
+
     errno = 0;
     char *e;
-    double result = strtod(value + 1, &e);
-    if (*e == '\0' && 0 == errno) // no error
+    int32_t id = strtol(strtok(NULL, ";"), &e, 10);
+    if (*e != '\0' || errno != 0) // error
     {
-        *parm_value = result;
-        log_d("[%u]: k%c value received %f", client_num, subtype, *parm_value);
-        sprintf(MsgBuf, "%sk%c:%f", get_command_name(CMD_PID), subtype, *parm_value);
-        web_socket_send(MsgBuf, client_num, true);
+        log_e("[%u]: Bad command %s", client_num, command);
+        return;
     }
-    else
+    int32_t result = strtol(strtok(NULL, ","), &e, 10);
+    if (*e != '\0' || errno != 0) // error
     {
-        log_e("[%u]: illegal format of k%c value received: %s", client_num, subtype, value + 1);
+        log_e("[%u]: Bad value %d", client_num, value);
+        return;
     }
+
+    switch (id)
+    {
+    case 0:
+    {
+        motor1.position_pid.set_kp(result);
+        sprintf(MsgBuf, "%sk%c:%d;%d,", get_command_name(CMD_PID), subtype, id, result);
+        break;
+    }
+    case 1:
+    {
+        motor1.velocity_pid.set_kp(result);
+        sprintf(MsgBuf, "%sk%c:%d;%d,", get_command_name(CMD_PID), subtype, id, result);
+        break;
+    }
+    case 2:
+    {
+        motor2.position_pid.set_kp(result);
+        sprintf(MsgBuf, "%sk%c:%d;%d,", get_command_name(CMD_PID), subtype, id, result);
+        break;
+    }
+    case 3:
+    {
+        motor2.velocity_pid.set_kp(result);
+        sprintf(MsgBuf, "%sk%c:%d;%d,", get_command_name(CMD_PID), subtype, id, result);
+        break;
+    }
+    case 4:
+    {
+        motor3.position_pid.set_kp(result);
+        sprintf(MsgBuf, "%sk%c:%d;%d,", get_command_name(CMD_PID), subtype, id, result);
+        break;
+    }
+    case 5:
+    {
+        motor3.velocity_pid.set_kp(result);
+        sprintf(MsgBuf, "%sk%c:%d;%d,", get_command_name(CMD_PID), subtype, id, result);
+        break;
+    }
+    case 6:
+    {
+        log_i("[%u]: set all pos k%c to %d", client_num, subtype, result);
+        int32_t data[3] = {
+            motor1.position_pid.set_max_ctrl_value(result),
+            motor2.position_pid.set_max_ctrl_value(result),
+            motor3.position_pid.set_max_ctrl_value(result),
+        };
+        sprintf(MsgBuf, "%sk%c:%d;%d,%d,%d,", get_command_name(CMD_PID), subtype, id, data[0], data[1], data[2]);
+        break;
+    }
+    case 7:
+    {
+        log_i("[%u]: set all vel k%c to %d", client_num, subtype, result);
+        int32_t data[3] = {
+            motor1.velocity_pid.set_max_ctrl_value(result),
+            motor2.velocity_pid.set_max_ctrl_value(result),
+            motor3.velocity_pid.set_max_ctrl_value(result),
+        };
+        sprintf(MsgBuf, "%sk%c:%d;%d,%d,%d,", get_command_name(CMD_PID), subtype, id, data[0], data[1], data[2]);
+        break;
+    }
+    default:
+        log_e("[%u]: Bad id value %s", client_num, id);
+        return;
+    }
+    web_socket_send(MsgBuf, client_num, true);
 }
 
 void handle_pos_req(char *command, uint8_t client_num)
@@ -359,13 +430,16 @@ void handle_err_req(char *command, uint8_t client_num)
         log_e("[%u]: settin error values is not supported: %s", client_num, command);
         return;
     }
-    double data_1 = motor1.position_pid.get_error();
-    double data_2 = motor1.velocity_pid.get_error();
-    double data_3 = motor2.position_pid.get_error();
-    double data_4 = motor2.velocity_pid.get_error();
-    double data_5 = motor3.position_pid.get_error();
-    double data_6 = motor3.velocity_pid.get_error();
-    sprintf(MsgBuf, "%s:%f,%f,%f,%f,%f,%f,", get_command_name(CMD_ERR_REQ), data_1, data_2, data_3, data_4, data_5, data_6);
+
+    double_t data[] = {
+        motor1.position_pid.get_error(),
+        motor1.velocity_pid.get_error(),
+        motor2.position_pid.get_error(),
+        motor2.velocity_pid.get_error(),
+        motor3.position_pid.get_error(),
+        motor3.velocity_pid.get_error(),
+    };
+    sprintf(MsgBuf, "%s:%f,%f,%f,%f,%f,%f,", get_command_name(CMD_ERR_REQ), data[0], data[1], data[2], data[3], data[4], data[5]);
     web_socket_send(MsgBuf, client_num, false);
 }
 
@@ -385,13 +459,21 @@ void handle_prev_err(char *command, uint8_t client_num)
         return;
     }
 
-    double data_1 = motor1.position_pid.get_error();
-    double data_2 = motor1.velocity_pid.get_error();
-    double data_3 = motor2.position_pid.get_error();
-    double data_4 = motor2.velocity_pid.get_error();
-    double data_5 = motor3.position_pid.get_error();
-    double data_6 = motor3.velocity_pid.get_error();
-    sprintf(MsgBuf, "%s:%f,%f,%f,%f,%f,%f,", get_command_name(CMD_PREV_ERR), data_1, data_2, data_3, data_4, data_5, data_6);
+    // test for new motor
+    // for (size_t i = 0; i < ; i++)
+    // {
+    //     motor1.get_error(POSITION_PID);
+
+    // }
+    double_t data[] = {
+        motor1.position_pid.get_error(),
+        motor1.velocity_pid.get_error(),
+        motor2.position_pid.get_error(),
+        motor2.velocity_pid.get_error(),
+        motor3.position_pid.get_error(),
+        motor3.velocity_pid.get_error(),
+    };
+    sprintf(MsgBuf, "%s:%f,%f,%f,%f,%f,%f,", get_command_name(CMD_PREV_ERR), data[0], data[1], data[2], data[3], data[4], data[5]);
     web_socket_send(MsgBuf, client_num, false);
 }
 
@@ -570,7 +652,7 @@ void handle_target_pos(char *command, uint8_t client_num)
         int32_t data_2 = motor2.get_target_position();
         int32_t data_3 = motor3.get_target_position();
         sprintf(MsgBuf, "%s:%d,%d,%d,", get_command_name(CMD_TARGET_POS), data_1, data_2, data_3);
-        web_socket_send(MsgBuf, client_num, true);
+        web_socket_send(MsgBuf, client_num, false);
         return;
     }
 
@@ -625,7 +707,7 @@ void handle_target_pos(char *command, uint8_t client_num)
         log_e("[%u]: Bad command %s", client_num, command);
         return;
     }
-    web_socket_send(MsgBuf, client_num, false);
+    web_socket_send(MsgBuf, client_num, true);
 }
 
 void handle_target_vel(char *command, uint8_t client_num)
@@ -698,7 +780,7 @@ void handle_target_vel(char *command, uint8_t client_num)
         log_e("[%u]: Bad command %s", client_num, command);
         return;
     }
-    web_socket_send(MsgBuf, client_num, false);
+    web_socket_send(MsgBuf, client_num, true);
 }
 
 /**
@@ -834,6 +916,12 @@ void onJSRequest(AsyncWebServerRequest *request)
     handleRequest(request, "/main.js", "text/javascript");
 }
 
+// Callback: send icon
+void onIconRequest(AsyncWebServerRequest *request)
+{
+    handleRequest(request, "/favicon.ico", "image/x-icon");
+}
+
 // Callback: send 404 if requested file does not exist
 void onPageNotFound(AsyncWebServerRequest *request)
 {
@@ -870,6 +958,9 @@ void setup_network()
 
     // On HTTP request for javascript, provide main.js
     Server.on("/main.js", HTTP_GET, onJSRequest);
+
+    // On HTTP request for favicon.ico, provide favicon
+    Server.on("/favicon.ico", HTTP_GET, onIconRequest);
 
     // Handle requests for pages that do not exist
     Server.onNotFound(onPageNotFound);
@@ -987,7 +1078,7 @@ void setup()
     Serial.begin(115200);
 
     pinMode(PIN_PID_LOOP, OUTPUT);
-    
+
     pinMode(12, OUTPUT);
     digitalWrite(12, HIGH);
     pinMode(13, OUTPUT);

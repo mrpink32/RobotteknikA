@@ -44,12 +44,12 @@ class websocket_data:
     def toggle(self):
         self.ws.send("toggle")
 
-    def set_slider(self, value):
-        svg = SvgHandler(value)
-        self.ws.send(f"sli:{svg.interpret()}")
+    # def set_slider(self, value):
+    #     svg = SvgHandler(value)
+    #     self.ws.send(f"sli:{svg.interpret()}")
 
-    def set_kx(self, x, value):
-        self.ws.send(f"pid_{x}:{value}")
+    # def set_kx(self, x, value):
+    #     self.ws.send(f"pid_{x}:{value}")
 
     def request_led_state(self):
         self.ws.send(f"led_state:?") 
@@ -57,8 +57,8 @@ class websocket_data:
     # def request_slider(self):
     #     self.ws.send(f"sli:?") 
     
-    def request_kx(self, x):
-        self.ws.send(f"pid_{x}:?")
+    # def request_kx(self, x):
+    #     self.ws.send(f"pid_{x}:?")
 
 def my_cb(cmd, parm):
     print(f'command: {cmd} parameter: {parm}')
@@ -66,7 +66,7 @@ def my_cb(cmd, parm):
 def test_class():
     wsd = websocket_data()
     wsd.register_cb(my_cb)
-    wsd.connect('ws://192.168.10.147:1337')
+    wsd.connect('ws://192.168.4.1:1337')
 
     kp = 0
     while True:
