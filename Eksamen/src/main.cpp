@@ -19,6 +19,7 @@ enum Commands
 {
     CMD_PID,
     CMD_TOGGLE,
+    CMD_POINTS,
     CMD_ERR_REQ,
     CMD_POS_REQ,
     CMD_VEL_REQ,
@@ -40,6 +41,7 @@ static command_t commands[] = {
     {"pid_", CMD_PID},
     {"err", CMD_ERR_REQ},
     {"toggle", CMD_TOGGLE},
+    {"points", CMD_POINTS},
     {"max_pos", CMD_MAX_POS},
     {"max_vel", CMD_MAX_VEL},
     {"prev_err", CMD_PREV_ERR},
@@ -803,9 +805,6 @@ void handle_command(uint8_t client_num, uint8_t *payload, size_t length)
     case CMD_LED_STATE:
         handle_led_state(command, client_num);
         break;
-    // case CMD_SLI:
-    // 	handle_slider(command, client_num);
-    // 	break;
     case CMD_PID:
         handle_kx(command, client_num);
         break;
@@ -838,6 +837,10 @@ void handle_command(uint8_t client_num, uint8_t *payload, size_t length)
         // log_d("Implement handler for request: %s", command);
         handle_prev_err(command, client_num);
         break;
+    // case CMD_POINTS:
+        // log_d("Implement handler for request: %s", command);
+        // handle_points(command, client_num);
+        // break;
     default:
         log_e("[%u] Message not recognized: %s", client_num, command);
         return;
@@ -872,7 +875,7 @@ void onWebSocketEvent(uint8_t client_num,
 
     // Handle text messages from client
     case WStype_TEXT:
-        // log_d("[%u] Text: %s", client_num, payload);
+        log_d("[%u] Text: %s", client_num, payload);
         handle_command(client_num, payload, length);
         break;
 
